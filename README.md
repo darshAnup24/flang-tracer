@@ -17,14 +17,14 @@ FTrace now comes with a beautiful, fully-interactive Web Interface. It provides 
 
 To launch the Web Dashboard locally:
 ```bash
-# Wait, make sure you are in the flang-tracer folder!
+# Make sure you are in the flang-tracer folder!
 cd flang-tracer/
 
 # Activate the python environment and run the server
 source venv/bin/activate
 python3 web/app.py
 ```
-*Next, open your browser and go to [http://127.0.0.1:8080/](http://127.0.0.1:8080/). Paste some Fortran code in and press Execute!*
+*Next, open your browser and go to [http://127.0.0.1:8080/](http://127.0.0.1:8080/). Paste some Fortran code in and press "Execute Trace Engine"!*
 
 ---
 
