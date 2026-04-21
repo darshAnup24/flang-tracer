@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: flang-tracer
+Version: 0.1.0
+Requires-Dist: click
+Requires-Dist: rich
+Requires-Dist: pytest
+Dynamic: requires-dist

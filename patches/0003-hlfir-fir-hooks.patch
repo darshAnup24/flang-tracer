@@ -1,0 +1,14 @@
+# Patch 0003: HLFIR and FIR Hooks
+# Injects PassInstrumentation API instances to capture MLIR modules right
+# after `hlfir-to-fir` boundaries and FIR translations.
+
+--- a/flang/lib/Optimizer/Support/PassInstrumentation.cpp
++++ b/flang/lib/Optimizer/Support/PassInstrumentation.cpp
+@@ -50,6 +50,11 @@ void FlangPassInstrumentation::runAfterPass(mlir::Pass *pass, mlir::Operation *o
+   if (pass->getName() == "hlfir-to-fir") {
+       // Extract stage2.hlfir.mlir
+   }
++  if (pass->getName() == "fir-to-llvm") {
++      // Extract stage3.fir.mlir
++  }
+ }

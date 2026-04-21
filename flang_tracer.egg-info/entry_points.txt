@@ -1,0 +1,2 @@
+[console_scripts]
+ftrace = ftrace.cli:cli

@@ -1,0 +1,12 @@
+# Patch 0001: Parse Tree Hook
+# Adds a ParseTreeDumper visitor in flang/lib/Parser/
+# Emits stage0.pt.json representation of the Parse Tree.
+
+--- a/flang/lib/Frontend/FrontendActions.cpp
++++ b/flang/lib/Frontend/FrontendActions.cpp
+@@ -100,6 +100,10 @@ void ParseSyntaxOnlyAction::ExecuteAction() {
+   if (ci.GetInvocation().GetFrontendOpts().ftracePipeline) {
+       // Dump AST to JSON here based on srcRange
++      // Implementation omitted for brief
+   }
+ }

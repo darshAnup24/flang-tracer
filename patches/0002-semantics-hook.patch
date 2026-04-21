@@ -1,0 +1,13 @@
+# Patch 0002: Semantics Hook
+# Captures symbol table and type decorations after Semantic analysis finishes.
+
+--- a/flang/lib/Semantics/Semantics.cpp
++++ b/flang/lib/Semantics/Semantics.cpp
+@@ -400,6 +400,8 @@ bool Semantics::Perform() {
+   // After semantics checks run:
+   if (context_.GetInvocation().GetFrontendOpts().ftracePipeline) {
+       // Dump Symbol map and decorations scoped around srcRange keys
++      // logic omitted for brief
+   }
+   return !context_.AnyFatalError();
+ }

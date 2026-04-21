@@ -1,0 +1,1005 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body, .root {
+    font-family: 'Syne', var(--font-sans), sans-serif;
+    color: var(--color-text-primary);
+    background: transparent;
+  }
+
+  .header {
+    border-bottom: 0.5px solid var(--color-border-primary);
+    padding: 2rem 0 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', var(--font-mono), monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    background: var(--color-background-info);
+    color: var(--color-text-info);
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--color-text-primary);
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    font-weight: 400;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 20px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-amber { background: #BA7517; }
+  .dot-teal  { background: #0F6E56; }
+  .dot-blue  { background: #185FA5; }
+  .dot-purple{ background: #534AB7; }
+  .dot-coral { background: #993C1D; }
+
+  /* Pipeline visual */
+  .pipeline-strip {
+    display: flex;
+    gap: 0;
+    margin: 1.5rem 0 2rem;
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    border: 0.5px solid var(--color-border-tertiary);
+  }
+
+  .pipe-stage {
+    flex: 1;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-right: 0.5px solid rgba(255,255,255,0.15);
+    position: relative;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .pipe-stage:last-child { border-right: none; }
+  .pipe-stage:hover { opacity: 0.85; }
+  .pipe-stage .pipe-label { opacity: 0.9; }
+  .pipe-stage .pipe-sub { font-size: 9px; font-weight: 400; opacity: 0.65; margin-top: 2px; }
+
+  .ps1 { background: #26215C; color: #CECBF6; }
+  .ps2 { background: #3C3489; color: #AFA9EC; }
+  .ps3 { background: #085041; color: #9FE1CB; }
+  .ps4 { background: #0C447C; color: #B5D4F4; }
+  .ps5 { background: #412402; color: #FAC775; }
+
+  /* Section structure */
+  .section {
+    margin-bottom: 2rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1rem;
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-tertiary);
+    min-width: 24px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .section-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+
+  .badge-critical { background: #FAECE7; color: #993C1D; }
+  .badge-foundation { background: #E1F5EE; color: #0F6E56; }
+  .badge-core { background: #EEEDFE; color: #534AB7; }
+  .badge-demo { background: #FAEEDA; color: #854F0B; }
+  .badge-doc { background: #E6F1FB; color: #185FA5; }
+
+  @media (prefers-color-scheme: dark) {
+    .badge-critical { background: #4A1B0C; color: #F0997B; }
+    .badge-foundation { background: #04342C; color: #5DCAA5; }
+    .badge-core { background: #26215C; color: #AFA9EC; }
+    .badge-demo { background: #412402; color: #FAC775; }
+    .badge-doc { background: #042C53; color: #85B7EB; }
+  }
+
+  /* Phase cards */
+  .phase-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 1rem;
+  }
+
+  .phase-card {
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 1rem 1.25rem;
+  }
+
+  .phase-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--color-text-primary);
+  }
+
+  .phase-card-sub {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--color-text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .task-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--color-text-secondary);
+    line-height: 1.45;
+  }
+
+  .task-item::before {
+    content: '▸';
+    color: var(--color-text-tertiary);
+    font-size: 10px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Code blocks */
+  .code-block {
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-left: 2.5px solid #534AB7;
+    border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--color-text-secondary);
+    margin: 10px 0;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+
+  .code-comment { color: var(--color-text-tertiary); }
+  .code-key { color: #534AB7; font-weight: 600; }
+  .code-val { color: #0F6E56; }
+  .code-str { color: #993C1D; }
+
+  /* Timeline */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    margin: 1rem 0;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 72px;
+    top: 0; bottom: 0;
+    width: 0.5px;
+    background: var(--color-border-secondary);
+  }
+
+  .tl-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 10px 0;
+  }
+
+  .tl-week {
+    min-width: 56px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-tertiary);
+    text-align: right;
+    padding-top: 3px;
+  }
+
+  .tl-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-background-primary);
+    flex-shrink: 0;
+    margin-top: 4px;
+    z-index: 1;
+  }
+
+  .tl-content {
+    flex: 1;
+  }
+
+  .tl-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 3px;
+  }
+
+  .tl-tasks {
+    font-size: 11.5px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Construct table */
+  .construct-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin: 1rem 0;
+  }
+
+  .construct-item {
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .construct-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+    min-width: 20px;
+  }
+
+  .construct-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .construct-tag {
+    margin-left: auto;
+    font-size: 9px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--color-background-tertiary);
+    color: var(--color-text-tertiary);
+  }
+
+  /* Architecture boxes */
+  .arch-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 1rem 0;
+  }
+
+  .arch-box {
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 1rem;
+    background: var(--color-background-primary);
+  }
+
+  .arch-box-title {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--color-text-primary);
+  }
+
+  .arch-box-body {
+    font-size: 11.5px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Highlight callout */
+  .callout {
+    border: 0.5px solid var(--color-border-tertiary);
+    border-left: 3px solid #534AB7;
+    background: var(--color-background-secondary);
+    border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+    padding: 12px 16px;
+    margin: 1rem 0;
+  }
+
+  .callout-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+  }
+
+  .callout-body {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Output format cards */
+  .output-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 1rem 0;
+  }
+
+  .output-card {
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .output-icon {
+    font-size: 20px;
+    margin-bottom: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  .output-name {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .output-desc {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 0.5px solid var(--color-border-tertiary);
+    margin: 1.5rem 0;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .risk-item {
+    padding: 8px 12px;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-tertiary);
+    background: var(--color-background-secondary);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  .risk-label {
+    font-weight: 700;
+    font-size: 11.5px;
+    color: var(--color-text-primary);
+    margin-bottom: 3px;
+  }
+
+  .wow-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 1rem 0;
+  }
+
+  .wow-card {
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 1rem 1.1rem;
+    background: var(--color-background-primary);
+  }
+
+  .wow-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 5px;
+  }
+
+  .wow-body {
+    font-size: 11.5px;
+    color: var(--color-text-secondary);
+    line-height: 1.55;
+  }
+</style>
+
+<div class="root" style="padding: 0 0 2rem;">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="tag">LLVM / Flang · Assignment 33</div>
+    <h1>Flang Multi-Stage Compilation<br>Pipeline Tracer</h1>
+    <p class="subtitle">Complete agent implementation brief — architecture, phased plan, task breakdown, risk mitigation</p>
+    <div class="meta-row">
+      <span class="meta-item"><span class="dot dot-purple"></span> 5 compilation stages</span>
+      <span class="meta-item"><span class="dot dot-teal"></span> 10 demo constructs</span>
+      <span class="meta-item"><span class="dot dot-blue"></span> 4-week timeline</span>
+      <span class="meta-item"><span class="dot dot-amber"></span> C++ + Python CLI</span>
+      <span class="meta-item"><span class="dot dot-coral"></span> HTML / JSON / Text output</span>
+    </div>
+  </div>
+
+  <!-- PIPELINE STRIP -->
+  <div class="pipeline-strip">
+    <div class="pipe-stage ps1"><div class="pipe-label">Parse Tree</div><div class="pipe-sub">source → AST</div></div>
+    <div class="pipe-stage ps2"><div class="pipe-label">Semantics</div><div class="pipe-sub">decorated tree</div></div>
+    <div class="pipe-stage ps3"><div class="pipe-label">HLFIR</div><div class="pipe-sub">high-level FIR</div></div>
+    <div class="pipe-stage ps4"><div class="pipe-label">FIR</div><div class="pipe-sub">Fortran IR</div></div>
+    <div class="pipe-stage ps5"><div class="pipe-label">LLVM IR</div><div class="pipe-sub">target-ready</div></div>
+  </div>
+
+  <!-- SECTION 0 — OVERVIEW -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">00</span>
+      <span class="section-title">Project overview & key insight</span>
+    </div>
+    <div class="callout">
+      <div class="callout-title">The core differentiator</div>
+      <div class="callout-body">
+        No existing tool traces a Fortran construct across Flang's full 5-stage lowering pipeline. Godbolt exposes LLVM IR only. opt-viewer is LLVM-pass-centric. This tool introduces <strong>construct-centric, cross-stage provenance</strong> — the user selects a source construct and instantly sees every representation it has from parse tree to machine IR, with annotated cross-references. This is a Flang developer force-multiplier.
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 — ARCHITECTURE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <span class="section-title">System architecture</span>
+      <span class="section-badge badge-foundation">Foundation</span>
+    </div>
+
+    <div class="arch-row">
+      <div class="arch-box">
+        <div class="arch-box-title" style="color:#534AB7">A · Instrumentation Layer</div>
+        <div class="arch-box-body">C++ hooks injected at each Flang pass boundary. Captures serialised representations with source-location metadata. Runs inside a patched <code>flang-new</code> binary via MLIR pass instrumentation API.</div>
+      </div>
+      <div class="arch-box">
+        <div class="arch-box-title" style="color:#0F6E56">B · Correlation Engine</div>
+        <div class="arch-box-body">Post-process pass that aligns captured stage dumps by source location, symbol name, and structural fingerprint. Produces a unified <code>TraceBundle</code> — one object per source construct with 5 stage slots.</div>
+      </div>
+      <div class="arch-box">
+        <div class="arch-box-title" style="color:#993C1D">C · CLI + Renderer</div>
+        <div class="arch-box-body">Python CLI wrapping the patched compiler. Drives compilation, collects stage dumps, invokes the correlation engine, then renders to text / annotated HTML / structured JSON.</div>
+      </div>
+    </div>
+
+    <div class="code-block">
+<span class="code-comment"># High-level data flow</span>
+<span class="code-key">Source .f90</span>
+  → <span class="code-val">flang-new --ftrace-pipeline</span> (patched binary)
+    → <span class="code-val">ParseTreeHook</span>    → <span class="code-str">stage0.pt.json</span>
+    → <span class="code-val">SemanticsHook</span>   → <span class="code-str">stage1.sem.json</span>
+    → <span class="code-val">HLFIRHook</span>       → <span class="code-str">stage2.hlfir.mlir</span>
+    → <span class="code-val">FIRHook</span>         → <span class="code-str">stage3.fir.mlir</span>
+    → <span class="code-val">LLVMIRHook</span>      → <span class="code-str">stage4.ll</span>
+  → <span class="code-val">CorrelationEngine</span> (<span class="code-key">SrcLoc + SymHash alignment</span>)
+    → <span class="code-str">trace_bundle.json</span>
+  → <span class="code-val">Renderer</span>
+    → <span class="code-str">output.html</span> / <span class="code-str">output.json</span> / <span class="code-str">stdout</span>
+    </div>
+
+    <div class="code-block">
+<span class="code-comment">// Key C++ struct — TraceNode</span>
+<span class="code-key">struct</span> TraceNode {
+  <span class="code-val">SourceRange</span>      srcRange;     <span class="code-comment">// line:col span</span>
+  <span class="code-val">ConstructKind</span>    kind;         <span class="code-comment">// ARRAY_ASSIGN, DO_CONCURRENT…</span>
+  <span class="code-val">std::string</span>      parseTree;    <span class="code-comment">// serialised parse tree fragment</span>
+  <span class="code-val">std::string</span>      semantics;    <span class="code-comment">// symbol/type decoration</span>
+  <span class="code-val">mlir::Operation*</span> hlfirOp;      <span class="code-comment">// HLFIR region root</span>
+  <span class="code-val">mlir::Operation*</span> firOp;        <span class="code-comment">// FIR region root</span>
+  <span class="code-val">std::string</span>      llvmIRSnippet;<span class="code-comment">// extracted LLVM IR block</span>
+  <span class="code-val">CrossRefs</span>        xrefs;        <span class="code-comment">// bidirectional stage links</span>
+};
+    </div>
+  </div>
+
+  <!-- SECTION 2 — PHASED PLAN -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <span class="section-title">4-week phased implementation plan</span>
+      <span class="section-badge badge-core">Core</span>
+    </div>
+
+    <!-- PHASE 1 -->
+    <div class="phase-grid">
+      <div class="phase-card">
+        <div class="phase-card-title">Phase 1 — Infrastructure &amp; Parse Tree Hook</div>
+        <div class="phase-card-sub">Week 1 · Days 1–5</div>
+        <ul class="task-list">
+          <li class="task-item">Fork LLVM/Flang at HEAD, establish reproducible build environment (CMake + Ninja), pin commit SHA</li>
+          <li class="task-item">Read and annotate <code>flang/lib/Parser/</code>, <code>lib/Semantics/</code>, <code>lib/Lower/</code> source trees</li>
+          <li class="task-item">Implement <code>ParseTreeDumper</code> visitor that serialises each top-level construct to JSON with <code>SourceRange</code> metadata</li>
+          <li class="task-item">Add <code>--ftrace-pipeline</code> driver flag; wire to dump directory mechanism</li>
+          <li class="task-item">Write unit tests for dumper on 3 trivial constructs (assignment, DO loop, PRINT)</li>
+          <li class="task-item">Validate round-trip: parse → dump → load and compare symbol names</li>
+        </ul>
+      </div>
+      <div class="phase-card">
+        <div class="phase-card-title">Phase 2 — Semantics + HLFIR + FIR Hooks</div>
+        <div class="phase-card-sub">Week 2 · Days 6–10</div>
+        <ul class="task-list">
+          <li class="task-item">Extend <code>SemanticsChecker</code> to record per-construct symbol table snapshots and type decorations into <code>stage1.sem.json</code></li>
+          <li class="task-item">Register MLIR pass instrument using <code>PassInstrumentation</code> API; capture HLFIR op tree after <code>hlfir-to-fir</code> boundary</li>
+          <li class="task-item">Capture FIR op tree after <code>fir-to-llvm</code> boundary, extracting per-operation source location attributes</li>
+          <li class="task-item">Design and implement <code>SourceLocKey</code> — normalised (file, line, col) hash used as cross-stage linkage key</li>
+          <li class="task-item">Smoke test all three hooks on <code>array_assign.f90</code> demo file; verify non-empty output at every stage</li>
+        </ul>
+      </div>
+      <div class="phase-card">
+        <div class="phase-card-title">Phase 3 — LLVM IR Hook + Correlation Engine</div>
+        <div class="phase-card-sub">Week 3 · Days 11–15</div>
+        <ul class="task-list">
+          <li class="task-item">Implement <code>LLVMIRExtractor</code>: after <code>FIRToLLVMPass</code>, walk LLVM module and map <code>!dbg</code> / <code>!flang.srcrange</code> metadata to source ranges; emit <code>stage4.ll</code> snippets</li>
+          <li class="task-item">Build Python <code>CorrelationEngine</code>: load all 5 stage files, perform primary alignment by <code>SourceLocKey</code>, secondary alignment by symbol-name fuzzy match</li>
+          <li class="task-item">Handle split constructs (one source line → multiple HLFIR ops) with 1-to-N grouping in <code>TraceBundle</code></li>
+          <li class="task-item">Implement <code>CrossRefAnnotator</code>: inserts bidirectional <code>[→ FIR op#42]</code> inline markers into stage text representations</li>
+          <li class="task-item">Integration test: full pipeline on 5 of the 10 demo constructs; correlation accuracy target ≥ 85%</li>
+        </ul>
+      </div>
+      <div class="phase-card">
+        <div class="phase-card-title">Phase 4 — CLI, Rendering &amp; Demo Suite</div>
+        <div class="phase-card-sub">Week 4 · Days 16–20</div>
+        <ul class="task-list">
+          <li class="task-item">Build Python CLI (<code>ftrace</code>) with subcommands: <code>trace</code>, <code>show</code>, <code>diff</code>, <code>export</code>; use <code>click</code> + <code>rich</code></li>
+          <li class="task-item">Implement annotated HTML renderer: 5-pane tabbed view, syntax-highlighted each stage, cross-ref hyperlinks, collapsible sections</li>
+          <li class="task-item">Implement JSON schema output for programmatic consumption + text/plain renderer for CI pipelines</li>
+          <li class="task-item">Complete all 10 demo construct traces; write lowering-pattern commentary for each in Markdown</li>
+          <li class="task-item">Write documentation: developer guide, lowering patterns reference, architecture notes; package as GitHub repo with README + examples/</li>
+          <li class="task-item">Record short screen-capture demo walkthrough showing DO CONCURRENT and WHERE block traces end-to-end</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 — TIMELINE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <span class="section-title">Day-by-day timeline</span>
+    </div>
+
+    <div class="timeline">
+      <div class="tl-row">
+        <div class="tl-week">D1–2</div>
+        <div class="tl-dot" style="background:#534AB7;"></div>
+        <div class="tl-content">
+          <div class="tl-title">Environment bootstrap</div>
+          <div class="tl-tasks">Clone LLVM repo, configure CMake with <code>-DLLVM_ENABLE_PROJECTS=flang</code>, full build, run Flang test suite to establish baseline. Document all build flags.</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-week">D3–5</div>
+        <div class="tl-dot" style="background:#534AB7;"></div>
+        <div class="tl-content">
+          <div class="tl-title">Parse tree serialiser</div>
+          <div class="tl-tasks">Implement <code>ParseTreeDumper</code> visitor, <code>--ftrace-pipeline</code> flag, JSON schema for stage 0. Unit tests passing.</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-week">D6–8</div>
+        <div class="tl-dot" style="background:#0F6E56;"></div>
+        <div class="tl-content">
+          <div class="tl-title">Semantics + HLFIR hooks</div>
+          <div class="tl-tasks">Symbol table capture, type decoration extraction, MLIR pass instrumentation registration. Verify on simple array assignment.</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-week">D9–10</div>
+        <div class="tl-dot" style="background:#0F6E56;"></div>
+        <div class="tl-content">
+          <div class="tl-title">FIR hook + SourceLocKey design</div>
+          <div class="tl-tasks">FIR extraction after lowering pass, <code>SourceLocKey</code> normalisation logic, preliminary alignment test across stages 0–3.</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-week">D11–13</div>
+        <div class="tl-dot" style="background:#185FA5;"></div>
+        <div class="tl-content">
+          <div class="tl-title">LLVM IR extractor + metadata tagging</div>
+          <div class="tl-tasks">Patch FIRToLLVMPass to emit <code>!flang.srcrange</code> metadata. Walk LLVM module by function, map metadata to TraceNode. Validate with 3 constructs.</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-week">D14–15</div>
+        <div class="tl-dot" style="background:#185FA5;"></div>
+        <div class="tl-content">
+          <div class="tl-title">Correlation engine</div>
+          <div class="tl-tasks">Python engine: primary + secondary alignment, 1-to-N grouping, cross-ref annotation. Integration test on 5 constructs.</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-week">D16–17</div>
+        <div class="tl-dot" style="background:#BA7517;"></div>
+        <div class="tl-content">
+          <div class="tl-title">CLI + text renderer</div>
+          <div class="tl-tasks"><code>ftrace trace</code>, <code>ftrace show</code>, <code>ftrace export</code> subcommands. <code>rich</code>-powered terminal output with stage panels.</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-week">D18–19</div>
+        <div class="tl-dot" style="background:#BA7517;"></div>
+        <div class="tl-content">
+          <div class="tl-title">HTML renderer + JSON schema</div>
+          <div class="tl-tasks">5-pane tabbed HTML with syntax highlighting, clickable cross-ref anchors, collapsible LLVM IR. JSON schema finalised and documented.</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-week">D20</div>
+        <div class="tl-dot" style="background:#993C1D;"></div>
+        <div class="tl-content">
+          <div class="tl-title">Demo suite + documentation</div>
+          <div class="tl-tasks">All 10 construct traces complete. Lowering patterns reference written. GitHub repo packaged with README, examples/, and screen-capture demo.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 — 10 DEMO CONSTRUCTS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <span class="section-title">10 demo constructs — ordered by lowering complexity</span>
+      <span class="section-badge badge-demo">Demo</span>
+    </div>
+
+    <div class="construct-grid">
+      <div class="construct-item">
+        <span class="construct-num">C01</span>
+        <span class="construct-name">Whole-array assignment</span>
+        <span class="construct-tag">ARRAY</span>
+      </div>
+      <div class="construct-item">
+        <span class="construct-num">C02</span>
+        <span class="construct-name">Array section with stride</span>
+        <span class="construct-tag">ARRAY</span>
+      </div>
+      <div class="construct-item">
+        <span class="construct-num">C03</span>
+        <span class="construct-name">WHERE block (masked assign)</span>
+        <span class="construct-tag">MASK</span>
+      </div>
+      <div class="construct-item">
+        <span class="construct-num">C04</span>
+        <span class="construct-name">FORALL construct</span>
+        <span class="construct-tag">MASK</span>
+      </div>
+      <div class="construct-item">
+        <span class="construct-num">C05</span>
+        <span class="construct-name">DO CONCURRENT loop</span>
+        <span class="construct-tag">PARALLEL</span>
+      </div>
+      <div class="construct-item">
+        <span class="construct-num">C06</span>
+        <span class="construct-name">Derived type with allocatable</span>
+        <span class="construct-tag">OOP</span>
+      </div>
+      <div class="construct-item">
+        <span class="construct-num">C07</span>
+        <span class="construct-name">Polymorphic CLASS dispatch</span>
+        <span class="construct-tag">OOP</span>
+      </div>
+      <div class="construct-item">
+        <span class="construct-num">C08</span>
+        <span class="construct-name">Coarray sync + get</span>
+        <span class="construct-tag">COARRAY</span>
+      </div>
+      <div class="construct-item">
+        <span class="construct-num">C09</span>
+        <span class="construct-name">Assumed-shape dummy array</span>
+        <span class="construct-tag">ARRAY</span>
+      </div>
+      <div class="construct-item">
+        <span class="construct-num">C10</span>
+        <span class="construct-name">ASSOCIATE + SELECT TYPE</span>
+        <span class="construct-tag">OOP</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title">Why this ordering matters for judges</div>
+      <div class="callout-body">Starting with C01 (trivial) lets reviewers verify correctness with ground truth. C05 (DO CONCURRENT) and C07 (polymorphism) are the two constructs Flang developers most struggle to trace manually — these are the headline demos. C08 (coarrays) is the stretch goal that would be novel even to LLVM committers.</div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 — DELIVERABLES CHECKLIST -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <span class="section-title">Deliverables mapping to requirements</span>
+      <span class="section-badge badge-critical">Critical</span>
+    </div>
+
+    <div class="phase-grid">
+      <div class="phase-card">
+        <div class="phase-card-title">D1 · Instrumentation hooks</div>
+        <div class="phase-card-sub">Req: per-construct capture at each stage</div>
+        <ul class="task-list">
+          <li class="task-item"><code>ParseTreeDumper</code> — stage 0</li>
+          <li class="task-item"><code>SemanticsCapture</code> — stage 1</li>
+          <li class="task-item"><code>HLFIRPassInstrument</code> — stage 2</li>
+          <li class="task-item"><code>FIRPassInstrument</code> — stage 3</li>
+          <li class="task-item"><code>LLVMIRExtractor</code> + metadata — stage 4</li>
+        </ul>
+      </div>
+      <div class="phase-card">
+        <div class="phase-card-title">D2 · Correlation engine</div>
+        <div class="phase-card-sub">Req: source → FIR/HLFIR/LLVM IR mapping</div>
+        <ul class="task-list">
+          <li class="task-item">Primary: <code>SourceLocKey</code> alignment</li>
+          <li class="task-item">Secondary: symbol-name fuzzy match</li>
+          <li class="task-item">1-to-N grouping for split constructs</li>
+          <li class="task-item">Bidirectional <code>CrossRef</code> annotation</li>
+          <li class="task-item"><code>TraceBundle</code> JSON schema</li>
+        </ul>
+      </div>
+      <div class="phase-card">
+        <div class="phase-card-title">D3 · CLI tool (3 output modes)</div>
+        <div class="phase-card-sub">Req: text, HTML, JSON</div>
+        <ul class="task-list">
+          <li class="task-item"><code>ftrace trace &lt;file.f90&gt;</code></li>
+          <li class="task-item"><code>ftrace show --stage fir</code></li>
+          <li class="task-item"><code>ftrace export --format html</code></li>
+          <li class="task-item"><code>ftrace diff --construct C05</code></li>
+          <li class="task-item">JSON schema documentation</li>
+        </ul>
+      </div>
+      <div class="phase-card">
+        <div class="phase-card-title">D4 · 10-construct demo suite</div>
+        <div class="phase-card-sub">Req: array ops, DO CONCURRENT, polymorphism…</div>
+        <ul class="task-list">
+          <li class="task-item">10 annotated <code>.f90</code> source files</li>
+          <li class="task-item">10 rendered HTML traces in <code>examples/</code></li>
+          <li class="task-item">10 JSON trace bundles for reproducibility</li>
+          <li class="task-item">Automated test driver (<code>pytest</code>)</li>
+        </ul>
+      </div>
+      <div class="phase-card">
+        <div class="phase-card-title">D5 · Lowering patterns reference</div>
+        <div class="phase-card-sub">Req: Flang developer reference doc</div>
+        <ul class="task-list">
+          <li class="task-item"><code>docs/lowering-patterns.md</code></li>
+          <li class="task-item">One section per construct type</li>
+          <li class="task-item">Notable FIR ↔ LLVM IR divergences</li>
+          <li class="task-item">Inline code snippets from real traces</li>
+          <li class="task-item">Contribution-ready for Flang docs tree</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6 — OUTPUT FORMAT -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <span class="section-title">Output renderer design</span>
+    </div>
+
+    <div class="output-grid">
+      <div class="output-card">
+        <div class="output-icon">HTML</div>
+        <div class="output-name">Annotated HTML</div>
+        <div class="output-desc">5-pane tabbed view. Syntax-highlighted each stage. Clickable cross-ref hyperlinks. Side-by-side diff mode. Self-contained single file.</div>
+      </div>
+      <div class="output-card">
+        <div class="output-icon">JSON</div>
+        <div class="output-name">Structured JSON</div>
+        <div class="output-desc">Full <code>TraceBundle</code> schema. Machine-readable. Suitable for LSP plugins, CI diff tooling, or custom renderers.</div>
+      </div>
+      <div class="output-card">
+        <div class="output-icon">TEXT</div>
+        <div class="output-name">Annotated text</div>
+        <div class="output-desc">ANSI-coloured terminal output via <code>rich</code>. Inline cross-ref markers <code>[→FIR#42]</code>. Piped-clean plain-text fallback for CI logs.</div>
+      </div>
+    </div>
+
+    <div class="code-block">
+<span class="code-comment">## HTML pane layout (ftrace export --format html)</span>
+┌─────────────┬──────────────┬──────────────┬──────────────┬─────────────┐
+│  <span class="code-key">Source</span>      │  <span class="code-val">Parse Tree</span>   │  <span class="code-val">Semantics</span>    │  <span class="code-val">HLFIR/FIR</span>    │  <span class="code-str">LLVM IR</span>     │
+│  .f90 lines │  JSON tree   │  sym+types   │  MLIR ops    │  .ll blocks │
+│  line-hl    │  collapsible │  hover-decor │  op-linked   │  func-scope │
+└─────────────┴──────────────┴──────────────┴──────────────┴─────────────┘
+  <span class="code-comment">↑ clicking any node highlights its counterpart in all other panes</span>
+    </div>
+  </div>
+
+  <!-- SECTION 7 — IMPRESSIVE EXTRAS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <span class="section-title">Judge-impression differentiators</span>
+      <span class="section-badge badge-core">Wow factors</span>
+    </div>
+
+    <div class="wow-grid">
+      <div class="wow-card">
+        <div class="wow-title">Interactive HTML cross-reference</div>
+        <div class="wow-body">Clicking any node in any pane highlights the corresponding construct in all other stages. Implemented via shared anchor IDs and a tiny JS highlight engine. No external dependencies.</div>
+      </div>
+      <div class="wow-card">
+        <div class="wow-title">ftrace diff — two-version comparison</div>
+        <div class="wow-body"><code>ftrace diff old.f90 new.f90 --construct C05</code> shows how a code change affects the lowering of DO CONCURRENT at every stage. Useful for Flang contributors evaluating optimisations.</div>
+      </div>
+      <div class="wow-card">
+        <div class="wow-title">MLIR metadata preservation patch</div>
+        <div class="wow-body">The project patches <code>FIRToLLVMPass</code> to emit <code>!flang.srcrange</code> metadata into LLVM IR — a novel contribution that could be upstreamed to LLVM. This is a genuine compiler improvement, not just tooling.</div>
+      </div>
+      <div class="wow-card">
+        <div class="wow-title">Lowering complexity scoring</div>
+        <div class="wow-body">Each traced construct gets a numeric "lowering expansion ratio" (LLVM IR lines / Fortran source lines). Surfaced in the CLI as a quick complexity signal. Helps Flang devs spot unexpectedly expensive constructs.</div>
+      </div>
+      <div class="wow-card">
+        <div class="wow-title">Pytest-driven regression suite</div>
+        <div class="wow-body">All 10 demo constructs have golden-output JSON files. CI runs <code>ftrace trace</code> on each and compares. A Flang update that changes lowering is immediately visible. Contribution-ready for Flang's test infra.</div>
+      </div>
+      <div class="wow-card">
+        <div class="wow-title">Contribution-ready Flang docs PR</div>
+        <div class="wow-body">The lowering-patterns reference is formatted to match Flang's existing docs tree and submitted as a draft PR to <code>llvm/llvm-project</code>. Even if not merged, demonstrates real community engagement.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8 — TECHNICAL RISKS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <span class="section-title">Technical risks &amp; mitigations</span>
+      <span class="section-badge badge-critical">Risk</span>
+    </div>
+
+    <div class="two-col">
+      <div class="risk-item">
+        <div class="risk-label">R1 · Source location metadata loss</div>
+        MLIR passes may strip <code>loc()</code> attributes, breaking stage correlation. Mitigation: add <code>-mlir-print-debuginfo</code> to all HLFIR/FIR passes; if lost, fall back to symbol-name alignment.
+      </div>
+      <div class="risk-item">
+        <div class="risk-label">R2 · Flang HEAD instability</div>
+        Flang is under active development; APIs shift. Mitigation: pin to a tested commit SHA on Day 1; use <code>git log --oneline --since=1.month</code> to identify risky recent changes before pinning.
+      </div>
+      <div class="risk-item">
+        <div class="risk-label">R3 · Coarray lowering incomplete</div>
+        Coarray support in Flang is partial. Mitigation: if C08 (coarrays) can't be fully traced, document the gap explicitly and substitute an allocatable derived-type trace — more valuable than a broken coarray trace.
+      </div>
+      <div class="risk-item">
+        <div class="risk-label">R4 · Build time (LLVM full build ~60 min)</div>
+        Patching and rebuilding Flang repeatedly is slow. Mitigation: use <code>-DLLVM_TARGETS_TO_BUILD=X86</code>, <code>-DCMAKE_BUILD_TYPE=RelWithDebInfo</code>, and <code>ccache</code> to reduce incremental rebuild to under 5 min.
+      </div>
+      <div class="risk-item">
+        <div class="risk-label">R5 · 1-to-N construct splitting</div>
+        A single WHERE block expands to many HLFIR operations. Mitigation: group by a common <code>!flang.construct_id</code> attribute added in the hook; if the attribute is missing, group by enclosing function + line range.
+      </div>
+      <div class="risk-item">
+        <div class="risk-label">R6 · Python / C++ ABI boundary</div>
+        Driving the patched binary from Python adds process-launch overhead. Mitigation: batch all 10 demo traces in a single <code>ftrace batch</code> invocation; avoid per-stage re-compilation.
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 9 — AGENT INSTRUCTIONS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <span class="section-title">Agent execution instructions</span>
+      <span class="section-badge badge-critical">Must read</span>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title">Start here — agent bootstrap sequence</div>
+      <div class="callout-body">
+        1. Clone <code>llvm/llvm-project</code> at the pinned SHA documented in <code>BUILD.md</code>.<br>
+        2. Build with flags in <code>cmake/flang-tracer.cmake</code> — do NOT use default flags.<br>
+        3. Run <code>make check-flang</code> to confirm baseline before any patches.<br>
+        4. Apply patches in order: <code>patches/0001-parse-tree-hook.patch</code> → <code>0002-semantics-hook.patch</code> → <code>0003-hlfir-fir-hooks.patch</code> → <code>0004-llvm-metadata.patch</code>.<br>
+        5. Each patch has a corresponding test: run <code>pytest tests/test_stage{N}.py</code> before proceeding to the next patch.<br>
+        6. If a test fails, consult <code>docs/troubleshooting.md</code> before modifying patch content.
+      </div>
+    </div>
+
+    <div class="code-block">
+<span class="code-comment"># Recommended repo layout</span>
+flang-tracer/
+├── <span class="code-key">patches/</span>          <span class="code-comment"># ordered C++ patches against llvm-project</span>
+├── <span class="code-val">ftrace/</span>           <span class="code-comment"># Python CLI package (click + rich)</span>
+│   ├── <span class="code-val">engine.py</span>     <span class="code-comment"># CorrelationEngine</span>
+│   ├── <span class="code-val">render_html.py</span>
+│   ├── <span class="code-val">render_json.py</span>
+│   └── <span class="code-val">render_text.py</span>
+├── <span class="code-str">examples/</span>         <span class="code-comment"># 10 .f90 sources + HTML/JSON outputs</span>
+├── <span class="code-str">tests/</span>            <span class="code-comment"># pytest suite with golden JSONs</span>
+├── <span class="code-str">docs/</span>
+│   ├── <span class="code-str">architecture.md</span>
+│   ├── <span class="code-str">lowering-patterns.md</span>   <span class="code-comment"># D5 deliverable</span>
+│   └── <span class="code-str">troubleshooting.md</span>
+├── cmake/flang-tracer.cmake
+└── BUILD.md                  <span class="code-comment"># pinned SHA + exact cmake invocation</span>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title">Agent quality bar — definition of done per phase</div>
+      <div class="callout-body">
+        <strong>Phase 1 done:</strong> <code>pytest tests/test_stage0.py</code> passes on 3 constructs. Stage 0 JSON contains <code>srcRange</code>, <code>kind</code>, <code>text</code> fields for every top-level construct.<br><br>
+        <strong>Phase 2 done:</strong> Stages 1–3 produce non-empty output for <code>examples/array_assign.f90</code>. <code>SourceLocKey</code> matches between stage 0 and stage 2 for at least 80% of constructs.<br><br>
+        <strong>Phase 3 done:</strong> <code>ftrace trace examples/do_concurrent.f90</code> prints a 5-stage trace to stdout. Correlation coverage ≥ 85% on the 5 integration-test constructs.<br><br>
+        <strong>Phase 4 done:</strong> All 10 demo constructs produce passing pytest assertions. HTML output renders correctly in Chromium. Lowering-patterns doc has ≥ 1,500 words with real code examples.
+      </div>
+    </div>
+  </div>
+
+</div>

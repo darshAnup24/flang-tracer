@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flang Multi-Stage Tracer</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #09090b;
+            --surface: #18181b;
+            --surface-hover: #27272a;
+            --text-main: #f4f4f5;
+            --text-sub: #a1a1aa;
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.4);
+            --cyan: #06b6d4;
+            --cyan-glow: rgba(6, 182, 212, 0.4);
+            --border: #3f3f46;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Abstract Background Glow */
+        .glow-bg {
+            position: fixed;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at 50% 50%, var(--primary-glow) 0%, transparent 20%),
+                        radial-gradient(circle at 70% 30%, var(--cyan-glow) 0%, transparent 20%);
+            z-index: -1;
+            opacity: 0.5;
+            animation: pulse-glow 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        header {
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #a78bfa, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle { color: var(--text-sub); }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Uploader Area */
+        .upload-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .code-area {
+            width: 100%;
+            height: 150px;
+            background: #000;
+            color: #10b981;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+
+        .code-area:focus { outline: none; border-color: var(--cyan); }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--cyan));
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--cyan-glow);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading Animation */
+        .loader-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin: 3rem 0;
+            gap: 15px;
+        }
+
+        .stages {
+            display: flex;
+            gap: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+
+        .stage-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+
+        .stage-badge.active {
+            opacity: 1;
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        /* Pipeline Grid Result */
+        .results-container {
+            display: none;
+            animation: fade-in 0.5s ease-out forwards;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .grid-header {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .grid-header-card {
+            background: var(--surface);
+            padding: 10px;
+            border-radius: 8px;
+            border-top: 3px solid var(--primary);
+            font-weight: 800;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #e4e4e7;
+        }
+
+        .pipeline-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        .pane-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .trace-node {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #d4d4d8;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow-x: auto;
+            min-height: 100px;
+        }
+
+        h4 {
+            color: var(--primary);
+            font-size: 11px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .trace-node:hover {
+            border-color: var(--cyan);
+            background: var(--surface-hover);
+        }
+
+        .trace-node.active-highlight {
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px var(--cyan-glow);
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .construct-badge {
+            position: absolute;
+            top: 10px; right: 10px;
+            background: rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glow-bg"></div>
+
+    <header>
+        <h1>Flang Multi-Stage Tracer</h1>
+        <p class="subtitle">Real-time Compiler Pipeline Analytics & Representation Mapping</p>
+    </header>
+
+    <main>
+        <div class="upload-section">
+            <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                Upload Document or Paste Source
+            </h3>
+            <textarea class="code-area" id="codeInput" placeholder="! Paste your Fortran (.f90) code here...&#10;program example&#10;  integer :: A(5)&#10;  A = 10&#10;end program example"></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <input type="file" id="fileInput" accept=".f90,.txt" style="color: var(--text-sub); font-size: 14px; cursor: pointer;">
+                <button class="btn" id="traceBtn" onclick="runTrace()">Execute Trace Engine</button>
+            </div>
+        </div>
+
+        <div class="loader-container" id="loader">
+            <div style="color: var(--cyan); font-weight: 600; letter-spacing: 1px;">COMPILING AND INTERCEPTING...</div>
+            <div class="stages">
+                <div class="stage-badge" id="s-0">Parse Tree</div>
+                <div class="stage-badge" id="s-1">Semantics</div>
+                <div class="stage-badge" id="s-2">HLFIR</div>
+                <div class="stage-badge" id="s-3">FIR</div>
+                <div class="stage-badge" id="s-4">LLVM IR</div>
+            </div>
+        </div>
+
+        <div class="results-container" id="results">
+            <div class="grid-header">
+                <div class="grid-header-card" style="border-color: #8b5cf6;">Source</div>
+                <div class="grid-header-card" style="border-color: #3b82f6;">Parse Tree</div>
+                <div class="grid-header-card" style="border-color: #10b981;">Semantics</div>
+                <div class="grid-header-card" style="border-color: #f59e0b;">FIR Layers</div>
+                <div class="grid-header-card" style="border-color: #ef4444;">LLVM IR</div>
+            </div>
+            <div class="pipeline-grid" id="pipelineGrid">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const codeInput = document.getElementById('codeInput');
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => codeInput.value = ev.target.result;
+                reader.readAsText(file);
+            }
+        });
+
+        async function runTrace() {
+            const code = codeInput.value.trim();
+            if(!code) return alert("Please provide some source code.");
+
+            document.getElementById('traceBtn').disabled = true;
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('loader').style.display = 'flex';
+            
+            // Animation logic for compiler stages
+            const stages = [0,1,2,3,4];
+            for (let s of stages) {
+                document.querySelectorAll('.stage-badge').forEach(el => el.classList.remove('active'));
+                document.getElementById('s-'+s).classList.add('active');
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('code', code);
+                
+                const response = await fetch('/api/trace', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                renderResults(data);
+                
+            } catch(e) {
+                console.error(e);
+                alert("Error connecting to Trace Engine.");
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('traceBtn').disabled = false;
+            }
+        }
+
+        function renderResults(data) {
+            const grid = document.getElementById('pipelineGrid');
+            grid.innerHTML = '';
+            
+            const cols = [[], [], [], [], []]; // src, pt, sema, fir, llvm
+            
+            data.nodes.forEach((node, idx) => {
+                const nid = `node-${idx}`;
+                
+                // Pane 1: Source
+                cols[0].push(`
+                    <div class="trace-node group-${nid}" onmouseenter="highlight('${nid}')" onmouseleave="clearHighlight()">
+                        <div class="construct-badge">${node.kind || 'UNKNOWN'}</div>
+                        <h4>${node.src_range || 'General'}</h4>
+                        <span style="color: #6ee7b7;">${node.text || '...'}</span>
+                    </div>
+                `);
+
+                // Pane 2: Parse
+                cols[1].push(`
+                    <div class="trace-node group-${nid}" onmouseenter="highlight('${nid}')" onmouseleave="clearHighlight()">
+                        <h4>Structure</h4>
+                        <span style="color: #93c5fd;">${node.parse_tree || ''}</span>
+                    </div>
+                `);
+
+                // Pane 3: Semantics
+                cols[2].push(`
+                    <div class="trace-node group-${nid}" onmouseenter="highlight('${nid}')" onmouseleave="clearHighlight()">
+                        <h4>Symbol Types</h4>
+                        <span style="color: #d8b4fe;">${node.semantics || ''}</span>
+                    </div>
+                `);
+
+                // Pane 4: HLFIR & FIR
+                cols[3].push(`
+                    <div class="trace-node group-${nid}" onmouseenter="highlight('${nid}')" onmouseleave="clearHighlight()">
+                        <h4>HLFIR</h4>
+                        <span style="color: #fcd34d;">${node.hlfir_op || ''}</span><br/><br/>
+                        <h4>FIR</h4>
+                        <span style="color: #fdba74;">${node.fir_op || ''}</span>
+                    </div>
+                `);
+
+                // Pane 5: LLVM
+                cols[4].push(`
+                    <div class="trace-node group-${nid}" onmouseenter="highlight('${nid}')" onmouseleave="clearHighlight()">
+                        <h4>Machine Block</h4>
+                        <span style="color: #fca5a5;">${node.llvm_ir || ''}</span>
+                    </div>
+                `);
+            });
+
+            // Append columns to grid
+            cols.forEach(colHtmlArray => {
+                const colDiv = document.createElement('div');
+                colDiv.className = 'pane-col';
+                colDiv.innerHTML = colHtmlArray.join('');
+                grid.appendChild(colDiv);
+            });
+
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function highlight(nid) {
+            document.querySelectorAll('.trace-node').forEach(n => {
+                if(n.classList.contains('group-' + nid)) n.classList.add('active-highlight');
+                else n.classList.remove('active-highlight');
+            });
+        }
+
+        function clearHighlight() {
+            document.querySelectorAll('.active-highlight').forEach(n => n.classList.remove('active-highlight'));
+        }
+    </script>
+</body>
+</html>
