@@ -3,6 +3,8 @@
 ## What is it?
 FTrace is a tool that allows you to trace a single piece of Fortran source code completely across the Flang compiler's complex internal stages. It shows you what your source code looks like at the five different stages of compilation: Parse Tree, Semantics, HLFIR, FIR, and LLVM IR.
 
+📝 **Compiler Design Theory:** For a full academic breakdown explaining how concepts like ASTs, Symbol Tables, Intermediate Representations, and Lowering work under the hood here, please refer to our [Compiler Design Concepts Guide](docs/compiler_design_concepts.md).
+
 ## Why is it used?
 When engineers build the Flang compiler or developers debug performance issues with their Fortran code, they often need to know exactly how Fortran is translated into low-level machine instructions. Flang's compilation process is very complex, with 5 separate intermediate stages. Before this tool, developers had to manually dump out massive files for each stage and visually guess which line of code corresponded to which machine instruction.
 
