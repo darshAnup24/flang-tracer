@@ -10,28 +10,41 @@ When engineers build the Flang compiler or developers debug performance issues w
 
 ## How to use it?
 
-### Command Line Interface
-Run the fundamental trace directly from your terminal:
+### Interactive Web Application (New!)
+FTrace now comes with a beautiful, fully-interactive Web Interface. It provides a frosted-glass Dark Mode dashboard allowing you to paste Fortran code and visually experience pipeline mappings!
+To launch the Web Dashboard locally:
 ```bash
-ftrace trace my_code.f90
+# Starting from the flang-tracer/ folder
+source venv/bin/activate
+python3 web/app.py
+```
+*Next, open the provided `http://127.0.0.1:8080/` link in your browser.*
+
+### Command Line Interface (CLI)
+You can also run the fundamental trace natively from your terminal setup:
+
+```bash
+# Make sure to run inside the virtual environment!
+./venv/bin/ftrace trace my_code.f90
 ```
 
 To see only a specific stage calculation (e.g. only FIR):
 ```bash
-ftrace show --stage fir
+./venv/bin/ftrace show --stage fir
 ```
 
-Want to generate an interactive HTML report to view in your browser?
+Want to generate an interactive HTML report locally instead of launching the web-app?
 ```bash
-ftrace export --format html
+./venv/bin/ftrace export --format html
 ```
 
 Need to see how an optimization change impacted the compilation of a specific piece of code? Diff it:
 ```bash
-ftrace diff old_code.f90 new_code.f90 --construct C05
+./venv/bin/ftrace diff old_code.f90 new_code.f90 --construct C05
 ```
 
-### Getting Started Example
-1. Navigate to the examples tab: `cd examples/`
-2. We have 10 standard testing cases. Run: `ftrace trace C01_array_assign.f90`
-3. Observe how the arrays translate into LLVM execution blocks in the terminal!
+### Getting Started Fast
+1. Navigate to your project folder: `cd flang-tracer/`
+2. We have 10 standard testing models locally at `examples/`
+3. Hit the Web App: `python3 web/app.py`
+4. Copy the code directly from `examples/C01_array_assign.f90` and run the Trace Engine!
