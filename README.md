@@ -12,22 +12,28 @@ When engineers build the Flang compiler or developers debug performance issues w
 
 ## How to use it?
 
-### Interactive Web Application (New!)
-FTrace now comes with a beautiful, fully-interactive Web Interface. It provides a frosted-glass Dark Mode dashboard allowing you to paste Fortran code and visually experience pipeline mappings!
+### 🌟 Interactive Web Application (NEW!)
+FTrace now comes with a beautiful, fully-interactive Web Interface. It provides a frosted-glass Dark Mode dashboard allowing you to paste Fortran code and visually experience pipeline mappings along with Compiler Design theory!
+
 To launch the Web Dashboard locally:
 ```bash
-# Starting from the flang-tracer/ folder
+# Wait, make sure you are in the flang-tracer folder!
+cd flang-tracer/
+
+# Activate the python environment and run the server
 source venv/bin/activate
 python3 web/app.py
 ```
-*Next, open the provided `http://127.0.0.1:8080/` link in your browser.*
+*Next, open your browser and go to [http://127.0.0.1:8080/](http://127.0.0.1:8080/). Paste some Fortran code in and press Execute!*
+
+---
 
 ### Command Line Interface (CLI)
 You can also run the fundamental trace natively from your terminal setup:
 
 ```bash
 # Make sure to run inside the virtual environment!
-./venv/bin/ftrace trace my_code.f90
+./venv/bin/ftrace trace examples/C01_array_assign.f90
 ```
 
 To see only a specific stage calculation (e.g. only FIR):
@@ -35,7 +41,7 @@ To see only a specific stage calculation (e.g. only FIR):
 ./venv/bin/ftrace show --stage fir
 ```
 
-Want to generate an interactive HTML report locally instead of launching the web-app?
+Want to generate an interactive HTML report to view in your browser without spinning up the server?
 ```bash
 ./venv/bin/ftrace export --format html
 ```
