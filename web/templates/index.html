@@ -187,11 +187,27 @@
             padding: 10px;
             border-radius: 8px;
             border-top: 3px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .header-title {
             font-weight: 800;
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: #e4e4e7;
+        }
+
+        .header-concept {
+            font-size: 10px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px;
+            border-radius: 4px;
+            color: #a1a1aa;
         }
 
         .pipeline-grid {
@@ -228,6 +244,22 @@
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .cd-concept {
+            font-size: 11px;
+            font-family: 'Inter', sans-serif;
+            color: #a1a1aa;
+            background: rgba(0,0,0,0.3);
+            border-left: 2px solid var(--cyan);
+            padding: 8px;
+            margin-top: 12px;
+            border-radius: 0 4px 4px 0;
+            line-height: 1.4;
+        }
+
+        .cd-concept strong {
+            color: var(--cyan);
         }
 
         .trace-node:hover {
@@ -287,11 +319,26 @@
 
         <div class="results-container" id="results">
             <div class="grid-header">
-                <div class="grid-header-card" style="border-color: #8b5cf6;">Source</div>
-                <div class="grid-header-card" style="border-color: #3b82f6;">Parse Tree</div>
-                <div class="grid-header-card" style="border-color: #10b981;">Semantics</div>
-                <div class="grid-header-card" style="border-color: #f59e0b;">FIR Layers</div>
-                <div class="grid-header-card" style="border-color: #ef4444;">LLVM IR</div>
+                <div class="grid-header-card" style="border-color: #8b5cf6;">
+                    <span class="header-title">Source</span>
+                    <span class="header-concept">Lexical Analysis</span>
+                </div>
+                <div class="grid-header-card" style="border-color: #3b82f6;">
+                    <span class="header-title">Parse Tree</span>
+                    <span class="header-concept">Syntax Analysis (AST)</span>
+                </div>
+                <div class="grid-header-card" style="border-color: #10b981;">
+                    <span class="header-title">Semantics</span>
+                    <span class="header-concept">Symbol Table & Binding</span>
+                </div>
+                <div class="grid-header-card" style="border-color: #f59e0b;">
+                    <span class="header-title">FIR Layers</span>
+                    <span class="header-concept">Intermediate Rep. (IR)</span>
+                </div>
+                <div class="grid-header-card" style="border-color: #ef4444;">
+                    <span class="header-title">LLVM IR</span>
+                    <span class="header-concept">Code Generation</span>
+                </div>
             </div>
             <div class="pipeline-grid" id="pipelineGrid">
                 <!-- Injected via JS -->
@@ -364,6 +411,7 @@
                         <div class="construct-badge">${node.kind || 'UNKNOWN'}</div>
                         <h4>${node.src_range || 'General'}</h4>
                         <span style="color: #6ee7b7;">${node.text || '...'}</span>
+                        <div class="cd-concept"><strong>CD Concept:</strong> The raw lexical tokens are isolated by scanning.</div>
                     </div>
                 `);
 
@@ -372,6 +420,7 @@
                     <div class="trace-node group-${nid}" onmouseenter="highlight('${nid}')" onmouseleave="clearHighlight()">
                         <h4>Structure</h4>
                         <span style="color: #93c5fd;">${node.parse_tree || ''}</span>
+                        <div class="cd-concept"><strong>Syntax Analysis:</strong> Represents the Abstract Syntax Tree (AST), checking grammar and recursive language structure.</div>
                     </div>
                 `);
 
@@ -380,6 +429,7 @@
                     <div class="trace-node group-${nid}" onmouseenter="highlight('${nid}')" onmouseleave="clearHighlight()">
                         <h4>Symbol Types</h4>
                         <span style="color: #d8b4fe;">${node.semantics || ''}</span>
+                        <div class="cd-concept"><strong>Semantic Environment:</strong> Generates the Symbol Table validating types, constraints, and variable bindings in memory.</div>
                     </div>
                 `);
 
@@ -390,6 +440,7 @@
                         <span style="color: #fcd34d;">${node.hlfir_op || ''}</span><br/><br/>
                         <h4>FIR</h4>
                         <span style="color: #fdba74;">${node.fir_op || ''}</span>
+                        <div class="cd-concept"><strong>Intermediate Rep & Lowering:</strong> HLFIR preserves array semantics while FIR completely unrolls loops via Machine-level blocks.</div>
                     </div>
                 `);
 
@@ -398,6 +449,7 @@
                     <div class="trace-node group-${nid}" onmouseenter="highlight('${nid}')" onmouseleave="clearHighlight()">
                         <h4>Machine Block</h4>
                         <span style="color: #fca5a5;">${node.llvm_ir || ''}</span>
+                        <div class="cd-concept"><strong>Code-Gen & Metadata:</strong> LLVM translates to Executable Assembly. The !flang.srcrange Metadata perfectly traces back to the AST block!</div>
                     </div>
                 `);
             });
