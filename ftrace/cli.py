@@ -1,66 +1,134 @@
-import click
-import json
-import os
+#!/usr/bin/env python3
+"""
+FTrace command-line interface.
+Uses the new semantic correlation engine.
+"""
+
 import sys
+import os
+import argparse
+import logging
+import json
+from pathlib import Path
 
-# Hack to adjust path if `ftrace` is executed inside its own directory.
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from .engine import SemanticCorrelationEngine
+from .compiler_interface import FlangNotFoundError
+from .render_html import generate_html
+from .render_text import render_trace_to_terminal
 
-from ftrace.engine import CorrelationEngine
-from ftrace.render_text import render_trace_to_terminal
-from ftrace.render_html import generate_html
-from ftrace.render_json import export_json
-from tests.mocks import get_c01_mock_bundle
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-@click.group()
-def cli():
-    """Flang Multi-Stage Compilation Pipeline Tracer"""
-    pass
 
-@cli.command()
-@click.argument('source_file', type=click.Path(exists=True))
-def trace(source_file):
-    """Trace a Fortran source file through the pipeline."""
-    click.echo(f"Tracing {source_file}...")
-    
-    # Mock behavior since real flang is currently not compiled!
-    click.echo("LLVM build not detected natively, substituting with Engine Mock (C01)...")
-    
-    bundle = get_c01_mock_bundle()
-    render_trace_to_terminal(bundle)
+def read_fortran_file(filepath: str) -> str:
+    """Read Fortran source file."""
+    try:
+        with open(filepath, 'r') as f:
+            return f.read()
+    except FileNotFoundError:
+        logger.error(f"File not found: {filepath}")
+        sys.exit(1)
+    except IOError as e:
+        logger.error(f"Error reading file: {e}")
+        sys.exit(1)
 
-@cli.command()
-@click.option('--stage', type=click.Choice(['parse', 'sema', 'hlfir', 'fir', 'llvm']), required=True)
-def show(stage):
-    """Show the output of a specific compilation stage."""
-    click.echo(f"Showing stage definition: {stage} for active cache bundle.")
 
-@cli.command()
-@click.argument('old_file', type=click.Path(exists=True))
-@click.argument('new_file', type=click.Path(exists=True))
-@click.option('--construct', required=True, help='Construct ID to difference (e.g., C05)')
-def diff(old_file, new_file, construct):
-    """Compare lowering of a specific construct between two file versions."""
-    click.echo(f"Diffing {construct} between {old_file} and {new_file}")
+def trace_command(args):
+    """Trace a Fortran file through all compilation stages."""
+    logger.info(f"Tracing: {args.file}")
 
-@cli.command()
-@click.option('--format', type=click.Choice(['html', 'json', 'text']), default='text')
-def export(format):
-    """Export the currently correlated trace bundle to the specified format."""
-    click.echo(f"Exporting mock bundle in {format} format...")
-    bundle = get_c01_mock_bundle()
-    
-    if format == 'html':
-        html_output = generate_html(bundle)
-        with open("output.html", "w") as f:
-            f.write(html_output)
-        click.echo("Written to output.html")
-    elif format == 'json':
-        with open("output.json", "w") as f:
-            export_json(bundle, f)
-        click.echo("Written to output.json")
-    else:
-        render_trace_to_terminal(bundle)
+    # Read Fortran code
+    code = read_fortran_file(args.file)
+
+    # Create semantic correlation engine
+    try:
+        engine = SemanticCorrelationEngine()
+        logger.info("Using semantic correlation engine")
+    except Exception as e:
+        logger.error(f"Failed to initialize engine: {e}")
+        sys.exit(1)
+
+    # Trace through all stages
+    try:
+        logger.info("Starting semantic correlation...")
+        bundle = engine.trace_with_real_compiler(code)
+        
+        # Convert to dict format if needed
+        if not isinstance(bundle, dict):
+            bundle = bundle.to_dict()
+
+        stats = bundle.get('metadata', {}).get('correlation_stats', {})
+        logger.info(f"Correlation complete:")
+        logger.info(f"  Total constructs: {len(bundle.get('nodes', []))}")
+        logger.info(f"  Correlation rate: {stats.get('correlation_rate', 0):.1f}%")
+        logger.info(f"  Avg FIR ops/construct: {stats.get('avg_fir_ops_per_construct', 0):.1f}")
+
+        # Output results
+        if args.format == 'html':
+            output = generate_html(bundle)
+            output_file = args.output or 'trace_output.html'
+            with open(output_file, 'w') as f:
+                f.write(output)
+            logger.info(f"HTML output written to: {output_file}")
+
+        elif args.format == 'json':
+            output_file = args.output or 'trace_output.json'
+            with open(output_file, 'w') as f:
+                json.dump(bundle, f, indent=2)
+            logger.info(f"JSON output written to: {output_file}")
+
+        elif args.format == 'text':
+            output = render_trace_to_terminal(bundle)
+            if args.output:
+                with open(args.output, 'w') as f:
+                    f.write(output)
+                logger.info(f"Text output written to: {args.output}")
+            else:
+                print(output)
+
+    except FlangNotFoundError as e:
+        logger.error(f"Flang compiler not found: {e}")
+        logger.error("Please ensure flang-new is installed and in your PATH")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"Tracing failed: {e}", exc_info=True)
+        sys.exit(1)
+
+
+def main():
+    """Main CLI entry point."""
+    parser = argparse.ArgumentParser(
+        description='Flang Multi-Stage Semantic Compiler Tracer'
+    )
+
+    subparsers = parser.add_subparsers(dest='command', help='Commands')
+
+    # Trace command
+    trace_parser = subparsers.add_parser('trace', help='Trace Fortran code through all stages')
+    trace_parser.add_argument('file', help='Fortran source file')
+    trace_parser.add_argument(
+        '-f', '--format',
+        choices=['html', 'json', 'text'],
+        default='html',
+        help='Output format (default: html)'
+    )
+    trace_parser.add_argument(
+        '-o', '--output',
+        help='Output file (default: trace_output.<format>)'
+    )
+    trace_parser.set_defaults(func=trace_command)
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+
+    args.func(args)
+
 
 if __name__ == '__main__':
-    cli()
+    main()
