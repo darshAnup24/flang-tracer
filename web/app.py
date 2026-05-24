@@ -97,29 +97,73 @@ def extract_construct_type(code):
         return 'C01'
 
 
+def _fmt(value) -> str:
+    """Render a stage field as a human-readable string."""
+    if not value:
+        return ""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        parts = []
+        for item in value:
+            if isinstance(item, dict):
+                parts.append(item.get('raw') or item.get('line') or str(item))
+            else:
+                parts.append(str(item))
+        return '\n'.join(parts)
+    return str(value)
+
+
 def normalize_nodes(nodes):
-    """Convert semantic bundle nodes to API format."""
+    """
+    Convert bundle nodes to the API response format.
+
+    Handles two node shapes:
+    * Real bundle  – nested ``construct`` / ``metadata`` sub-dicts
+    * Mock data    – flat keys (``kind``, ``text``, ``parse_tree``, …)
+    """
     out = []
     for n in nodes:
         if not isinstance(n, dict):
             continue
 
-        construct = n.get('construct', {})
-        metadata = n.get('metadata', {})
+        # -- identity fields --------------------------------------------------
+        construct = n.get('construct') or {}
+        metadata  = n.get('metadata')  or {}
+
+        kind         = construct.get('kind') or n.get('kind', 'UNKNOWN')
+        construct_id = construct.get('id')   or n.get('src_range', '')
+        src_range    = construct.get('source_range') or n.get('src_range', '')
+        text         = n.get('source') or n.get('text', '')
+
+        # -- stage content fields --------------------------------------------
+        # Real bundle uses plural keys (hlfir_ops, fir_ops, llvm_instrs)
+        # Mock data uses singular keys (hlfir_op, fir_op, llvm_ir)
+        parse_tree_raw = n.get('parse_tree', [])
+        semantics_raw  = n.get('semantics',  [])
+        hlfir_raw      = n.get('hlfir_ops')  or n.get('hlfir_op', '')
+        fir_raw        = n.get('fir_ops')    or n.get('fir_op',   '')
+        llvm_raw       = n.get('llvm_instrs') or n.get('llvm_ir',  '')
+
+        # -- counts -----------------------------------------------------------
+        num_hlfir = metadata.get('num_hlfir_ops') or (len(hlfir_raw) if isinstance(hlfir_raw, list) else 0)
+        num_fir   = metadata.get('num_fir_ops')   or (len(fir_raw)   if isinstance(fir_raw,   list) else 0)
+        num_llvm  = metadata.get('num_llvm_instrs') or (len(llvm_raw) if isinstance(llvm_raw,  list) else 0)
 
         out.append({
-            "text": n.get('source', ''),
-            "kind": construct.get('kind', 'UNKNOWN'),
-            "construct_id": construct.get('id', ''),
-            "parse_tree": str(n.get('parse_tree', [])),
-            "semantics": str(n.get('semantics', [])),
-            "hlfir_op": str(n.get('hlfir_ops', [])),
-            "fir_op": str(n.get('fir_ops', [])),
-            "llvm_ir": str(n.get('llvm_instrs', [])),
-            "num_hlfir": metadata.get('num_hlfir_ops', 0),
-            "num_fir": metadata.get('num_fir_ops', 0),
-            "num_llvm": metadata.get('num_llvm_instrs', 0),
-            "correlated": metadata.get('fully_correlated', False)
+            "text":         text,
+            "kind":         kind,
+            "construct_id": construct_id,
+            "src_range":    src_range,
+            "parse_tree":   _fmt(parse_tree_raw),
+            "semantics":    _fmt(semantics_raw),
+            "hlfir_op":     _fmt(hlfir_raw),
+            "fir_op":       _fmt(fir_raw),
+            "llvm_ir":      _fmt(llvm_raw),
+            "num_hlfir":    num_hlfir,
+            "num_fir":      num_fir,
+            "num_llvm":     num_llvm,
+            "correlated":   metadata.get('fully_correlated', bool(fir_raw)),
         })
     return out
 
@@ -144,38 +188,48 @@ def trace():
 
         if COMPILER_AVAILABLE:
             try:
-                logger.info("Using semantic correlation engine")
+                logger.info("Using real flang compiler")
                 engine = SemanticCorrelationEngine()
                 bundle = engine.trace_with_real_compiler(code)
-                
-                # Convert bundle to dict if needed
+
                 if hasattr(bundle, 'to_dict'):
                     bundle_dict = bundle.to_dict()
                 else:
                     bundle_dict = bundle if isinstance(bundle, dict) else {}
-                
+
                 nodes = bundle_dict.get('nodes', [])
+                stats = bundle_dict.get('metadata', {}).get('correlation_stats', {})
                 return jsonify({
                     "nodes": normalize_nodes(nodes),
-                    "stats": bundle_dict.get('metadata', {}).get('correlation_stats', {})
+                    "stats": stats,
+                    "mode": "real",
                 })
 
             except Exception as e:
                 logger.warning(f"Real compiler failed: {e}", exc_info=True)
+                # Fall through to mock with a warning embedded in the response
 
+        # ---- Mock mode (flang unavailable or compilation failed) ----
         construct = extract_construct_type(code)
         bundle = get_mock_bundle_for_construct(construct)
         nodes = bundle.get('nodes', [])
 
         if nodes:
-            lines = [
+            code_lines = [
                 l.strip() for l in code.split('\n')
                 if l.strip() and not l.strip().startswith('!')
             ]
-            snippet = '\n'.join(lines[:3])
+            snippet = '\n'.join(code_lines[:3])
             nodes[0]['text'] = snippet
 
-        return jsonify({"nodes": normalize_nodes(nodes)})
+        return jsonify({
+            "nodes": normalize_nodes(nodes),
+            "mode": "mock",
+            "mock_warning": (
+                "flang compiler not found. Showing illustrative mock data. "
+                "Install flang with: sudo dnf install -y flang"
+            ),
+        })
 
     except Exception as e:
         logger.error(f"Trace error: {e}", exc_info=True)

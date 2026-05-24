@@ -83,22 +83,6 @@ def get_mock_bundle_for_construct(construct_id):
                     'llvm_ir': '%Point = type { double, double }  ; 16 bytes\n%point_val = alloca %Point\n%x_ptr = getelementptr %Point, %Point* %point_val, i32 0, i32 0'
                 }
             ]
-        },
-        'C03': {
-            'construct_id': 'C03',
-            'name': 'WHERE with Masked Assignment',
-            'nodes': [
-                {
-                    'src_range': '5:3-8:11',
-                    'kind': 'WHERE_BLOCK',
-                    'text': 'where (temp > 30)\n  status = "HOT"\nelsewhere (temp > 10)\n  status = "WARM"\nend where',
-                    'parse_tree': 'WhereConstruct(\n  MaskExpr(Relation(Var("temp"), ">", Literal(30))),\n  AssignmentStmt(Var("status"), StringLiteral("HOT"))\n)',
-                    'semantics': 'Mask: Array(Bool) | Shape conformance checked | Assign: Array(Char)',
-                    'hlfir_op': 'hlfir.where %mask1 {\n  hlfir.assign %str_hot to %status\n} hlfir.elsewhere %mask2 {\n  hlfir.assign %str_warm to %status\n}',
-                    'fir_op': 'fir.where %mask1 {\n  fir.array_update %status, %i, %str_hot\n} fir.elsewhere %mask2 {\n  fir.array_update %status, %i, %str_warm\n}',
-                    'llvm_ir': '%mask1_ptr = load i8*, i8** %mask1_ptr_storage\nbr i1 %mask1_elem, label %where.body, label %elsewhere.cond'
-                }
-            ]
         }
     }
     

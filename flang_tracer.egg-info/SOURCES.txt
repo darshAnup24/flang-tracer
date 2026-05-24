@@ -8,8 +8,13 @@ flang_tracer.egg-info/requires.txt
 flang_tracer.egg-info/top_level.txt
 ftrace/__init__.py
 ftrace/cli.py
+ftrace/compiler_interface.py
+ftrace/construct_id.py
 ftrace/engine.py
+ftrace/hlfir_anchoring.py
+ftrace/provenance.py
 ftrace/render_html.py
 ftrace/render_json.py
 ftrace/render_text.py
+ftrace/stage_parsers.py
 tests/test_stage0.py

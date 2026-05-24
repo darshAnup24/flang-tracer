@@ -7,10 +7,11 @@ setup(
     install_requires=[
         'click',
         'rich',
-        'pytest'
+        'pytest',
+        'flask'
     ],
     entry_points='''
         [console_scripts]
-        ftrace=ftrace.cli:cli
+        ftrace=ftrace.cli:main
     ''',
 )

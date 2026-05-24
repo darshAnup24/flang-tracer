@@ -1,26 +1,35 @@
 """
 Stage-specific semantic parsers for Flang compiler dumps.
 
-This module provides semantic-aware extraction of constructs at each stage:
-- Parse Tree: AST nodes (AssignmentStmt, Variable, Expr, etc.)
-- Semantics: Symbol table entries and type bindings
-- HLFIR: High-level Fortran IR with semantic structure
-- FIR: Lowered SSA-style operations with source ranges
-- LLVM IR: Machine code with debug metadata
+Each parser reads the raw text output from a compilation stage and returns
+structured data (constructs, symbols, IR ops) with source location info.
+
+Source location strategy
+------------------------
+* Parse tree: source text extracted via ``t = '...'`` terminal nodes,
+  then matched back to a line in the original .f90 source.
+* HLFIR / FIR: ``loc("file":line:col)`` MLIR location attribute, present
+  when compiled with ``-g``.
+* LLVM IR: ``!dbg !N`` references resolved against
+  ``!N = !DILocation(line: L, column: C, ...)`` metadata.
 """
 
 import re
 import logging
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Data classes
+# ---------------------------------------------------------------------------
+
 @dataclass
 class ParseTreeConstruct:
-    """Represents a parsed Fortran construct from the parse tree."""
-    kind: str  # 'AssignmentStmt', 'Expr', 'Variable', etc.
+    """A parsed Fortran construct from the parse-tree dump."""
+    kind: str
     line_range: Tuple[int, int]
     text: str
     children: List['ParseTreeConstruct'] = field(default_factory=list)
@@ -32,15 +41,15 @@ class ParseTreeConstruct:
             'line_range': self.line_range,
             'text': self.text,
             'source_range': self.source_range,
-            'num_children': len(self.children)
+            'num_children': len(self.children),
         }
 
 
 @dataclass
 class SemanticSymbol:
-    """Represents a symbol with type information from semantics stage."""
+    """A symbol entry from the semantics / symbol-table dump."""
     name: str
-    kind: str  # 'VARIABLE', 'PARAMETER', 'ARRAY', 'DERIVED', etc.
+    kind: str
     type_spec: str
     scope: str
     line_number: Optional[int] = None
@@ -52,20 +61,22 @@ class SemanticSymbol:
             'symbol_kind': self.kind,
             'type': self.type_spec,
             'scope': self.scope,
-            'attributes': self.attributes
+            'attributes': self.attributes,
         }
 
 
 @dataclass
 class IROperation:
-    """Represents an IR operation with provenance."""
+    """An IR operation with optional source provenance."""
     op_name: str
     operands: List[str]
     results: List[str]
-    source_range: Optional[str] = None
+    source_range: Optional[str] = None   # "file:line:col"
+    src_line: Optional[int] = None       # extracted integer line number
     construct_id: Optional[str] = None
     parent_block: Optional[str] = None
-    debug_loc: Optional[str] = None
+    debug_loc: Optional[str] = None      # "line:col"
+    raw: str = ""                        # original text line
 
     def to_dict(self):
         return {
@@ -73,13 +84,82 @@ class IROperation:
             'operands': self.operands,
             'results': self.results,
             'source_range': self.source_range,
-            'construct_id': self.construct_id,
-            'debug_loc': self.debug_loc
+            'src_line': self.src_line,
+            'debug_loc': self.debug_loc,
+            'raw': self.raw,
         }
 
 
+# ---------------------------------------------------------------------------
+# Parse-tree parser
+# ---------------------------------------------------------------------------
+
 class ParseTreeParser:
-    """Extracts AST constructs from Flang parse tree dumps."""
+    """
+    Extracts Fortran constructs from a Flang ``-fdebug-dump-parse-tree`` dump.
+
+    Flang's parse-tree dump is an indented textual walk of the AST.
+    Terminal nodes carrying source text appear as::
+
+        Name = 'foo'
+        t = 'a(:) = b(:) + c(:)'
+
+    We scan every line for a known construct-type keyword and then collect
+    the nearest ``t = '...'`` value as the source text.  We then resolve
+    that text back to a line number in the original Fortran source.
+    """
+
+    # All Flang construct-type names we want to surface.  The value is a
+    # normalised kind string returned in ParseTreeConstruct.kind.
+    CONSTRUCT_MARKERS: Dict[str, str] = {
+        'AssignmentStmt':         'AssignmentStmt',
+        'WhereConstruct':         'WhereConstruct',
+        'WhereConstructStmt':     'WhereConstruct',
+        'WhereStmt':              'WhereStmt',
+        'MaskedElsewhereStmt':    'WhereConstruct',
+        'ElsewhereStmt':          'WhereConstruct',
+        'ForallConstruct':        'ForallConstruct',
+        'ForallConstructStmt':    'ForallConstruct',
+        'ForallStmt':             'ForallStmt',
+        'DoConstruct':            'DoConstruct',
+        'NonLabelDoStmt':         'DoConstruct',
+        'DoConcurrentStmt':       'DoConcurrentStmt',
+        'LoopControl':            'DoConstruct',
+        'IfConstruct':            'IfConstruct',
+        'IfThenStmt':             'IfConstruct',
+        'IfStmt':                 'IfStmt',
+        'ElseIfStmt':             'IfConstruct',
+        'SelectCaseConstruct':    'SelectCaseConstruct',
+        'CaseConstruct':          'SelectCaseConstruct',
+        'PrintStmt':              'PrintStmt',
+        'WriteStmt':              'WriteStmt',
+        'ReadStmt':               'ReadStmt',
+        'CallStmt':               'CallStmt',
+        'AllocateStmt':           'AllocateStmt',
+        'DeallocateStmt':         'DeallocateStmt',
+        'ReturnStmt':             'ReturnStmt',
+        'StopStmt':               'StopStmt',
+        'OpenMPConstruct':        'OpenMPConstruct',
+        'OpenACCConstruct':       'OpenACCConstruct',
+    }
+
+    # Flang emits source text in two forms:
+    #   t = 'a = b + c'        (leaf terminal)
+    #   AssignmentStmt = 'a = b + c'  (full statement on construct line)
+    _T_PAT = re.compile(r"^\s*t\s*=\s*'([^']*(?:''[^']*)*)'")
+    _STMT_PAT = re.compile(
+        r"(?:AssignmentStmt|PrintStmt|WriteStmt|ReadStmt|CallStmt|"
+        r"WhereStmt|ForallStmt|DoStmt|IfStmt|AllocateStmt|DeallocateStmt|"
+        r"ReturnStmt|StopStmt|OpenStmt|CloseStmt|InquireStmt|RewindStmt|"
+        r"BackspaceStmt|EndfileStmt|WaitStmt|FlushStmt|"
+        r"WhereConstructStmt|ForallConstructStmt|DoConcurrentStmt|"
+        r"IfThenStmt|ElseIfStmt|ElseStmt|SelectCaseStmt|CaseStmt|"
+        r"TypeDeclarationStmt|ParameterStmt|ImplicitStmt|"
+        r"UseStmt|ModuleStmt|ProgramStmt|SubroutineStmt|FunctionStmt)"
+        r"\s*=\s*'([^']*(?:''[^']*)*)'"
+    )
+    # MLIR loc() attribute (appears if -g was used and parse tree has it)
+    _LOC_PAT = re.compile(r'loc\(["\'].*?["\']\s*:(\d+)\s*:\s*(\d+)\)')
 
     def __init__(self, parse_tree_dump: str, source_text: str = ""):
         self.dump = parse_tree_dump
@@ -87,466 +167,415 @@ class ParseTreeParser:
         self.source_text = source_text or ""
         self.source_lines = self.source_text.splitlines()
         self.constructs: List[ParseTreeConstruct] = []
+        # Track which source lines we already assigned to avoid duplicates
+        self._used_lines: set = set()
 
     def parse(self) -> List[ParseTreeConstruct]:
-        """Extract all constructs from parse tree dump."""
         self.constructs = []
-        self._extract_all_assignments()
+        self._used_lines = set()
+        self._extract_all_constructs()
         return self.constructs
 
-    def _extract_all_assignments(self):
-        """Extract all assignment statements and structured constructs from parse tree."""
-        for i, line in enumerate(self.lines):
-            # Look for AssignmentStm entries which show "t = '...'"
-            if 'AssignmentStm' in line:
-                construct = self._parse_assignment_stmt(i)
-                if construct:
-                    self.constructs.append(construct)
-            # Look for other statement types
-            elif any(stmt in line for stmt in ['PrintStmt', 'WriteStmt', 'ReadStmt']):
-                construct = self._parse_io_stmt(i)
-                if construct:
-                    self.constructs.append(construct)
-            elif 'CallStmt' in line:
-                construct = self._parse_call_stmt(i)
-                if construct:
-                    self.constructs.append(construct)
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
 
-    def _parse_assignment_stmt(self, line_idx: int) -> Optional[ParseTreeConstruct]:
-        """Parse an assignment statement from parse tree."""
-        # Look for the "t = '...'" pattern which gives us the source text
-        for j in range(line_idx, min(line_idx + 5, len(self.lines))):
-            match = re.search(r"t\s*=\s*'([^']+)'", self.lines[j])
-            if match:
-                text = match.group(1)
-                line_range, source_range = self._resolve_source_range(text)
-                construct = ParseTreeConstruct(
-                    kind='AssignmentStmt',
-                    line_range=line_range,
-                    text=text,
-                    source_range=source_range
-                )
-                return construct
+    def _extract_all_constructs(self):
+        i = 0
+        while i < len(self.lines):
+            line = self.lines[i]
+            matched_kind = self._match_construct_marker(line)
+            if matched_kind:
+                construct = self._parse_construct(i, matched_kind)
+                if construct:
+                    self.constructs.append(construct)
+            i += 1
+
+    def _match_construct_marker(self, line: str) -> Optional[str]:
+        """Return the normalised kind if this line contains a construct marker."""
+        stripped = line.strip()
+        # Avoid matching substrings – require the keyword to be a whole word
+        for marker, kind in self.CONSTRUCT_MARKERS.items():
+            if re.search(r'\b' + re.escape(marker) + r'\b', stripped):
+                return kind
         return None
 
-    def _parse_io_stmt(self, line_idx: int) -> Optional[ParseTreeConstruct]:
-        """Parse an I/O statement from parse tree."""
-        line = self.lines[line_idx]
-        if 'PrintStmt' in line:
-            kind = 'PrintStmt'
-        elif 'WriteStmt' in line:
-            kind = 'WriteStmt'
-        elif 'ReadStmt' in line:
-            kind = 'ReadStmt'
-        else:
+    def _parse_construct(self, line_idx: int, kind: str) -> Optional[ParseTreeConstruct]:
+        """Extract a construct starting at line_idx."""
+        # Look ahead up to 10 lines for a t = '...' or Name = '...' terminal
+        text = self._find_source_text(line_idx, lookahead=10)
+        if not text:
+            # Try to synthesise text from the source if we find a line match
+            text = self._guess_text_for_kind(kind)
+
+        if not text:
             return None
-        
-        # Try to extract the statement text
-        for j in range(line_idx, min(line_idx + 3, len(self.lines))):
-            match = re.search(r"t\s*=\s*'([^']+)'", self.lines[j])
-            if match:
-                text = match.group(1)
-                line_range, source_range = self._resolve_source_range(text)
-                construct = ParseTreeConstruct(
-                    kind=kind,
-                    line_range=line_range,
-                    text=text,
-                    source_range=source_range
-                )
-                return construct
+
+        # Check for a loc() attribute on the same or nearby lines
+        src_line = self._find_loc_in_range(line_idx, lookahead=5)
+
+        # Resolve source position via text matching if loc() wasn't found
+        line_range, source_range = self._resolve_source_range(text, hint_line=src_line)
+
+        # Filter: if we couldn't locate the construct at all, skip it
+        if line_range == (0, 0):
+            return None
+
+        return ParseTreeConstruct(
+            kind=kind,
+            line_range=line_range,
+            text=text,
+            source_range=source_range,
+        )
+
+    def _find_source_text(self, start: int, lookahead: int = 10) -> str:
+        """Scan forward looking for a source-text terminal value."""
+        end = min(start + lookahead, len(self.lines))
+        for j in range(start, end):
+            line = self.lines[j]
+            # 1. Direct construct statement: AssignmentStmt = '...'
+            m = self._STMT_PAT.search(line)
+            if m:
+                return m.group(1).replace("''", "'")
+            # 2. Leaf terminal: t = '...'
+            m = self._T_PAT.match(line)
+            if m:
+                return m.group(1).replace("''", "'")
+        return ""
+
+    def _find_loc_in_range(self, start: int, lookahead: int = 5) -> Optional[int]:
+        """Return the source line number from a loc() attribute, if present."""
+        end = min(start + lookahead, len(self.lines))
+        for j in range(start, end):
+            m = self._LOC_PAT.search(self.lines[j])
+            if m:
+                return int(m.group(1))
         return None
 
-    def _parse_call_stmt(self, line_idx: int) -> Optional[ParseTreeConstruct]:
-        """Parse a call statement from parse tree."""
-        for j in range(line_idx, min(line_idx + 3, len(self.lines))):
-            match = re.search(r"t\s*=\s*'([^']+)'", self.lines[j])
-            if match:
-                text = match.group(1)
-                line_range, source_range = self._resolve_source_range(text)
-                construct = ParseTreeConstruct(
-                    kind='CallStmt',
-                    line_range=line_range,
-                    text=text,
-                    source_range=source_range
-                )
-                return construct
-        return None
+    def _guess_text_for_kind(self, kind: str) -> str:
+        """Last-resort: return the kind name so the construct isn't silently dropped."""
+        return f"[{kind}]"
 
-    def _resolve_source_range(self, text: str) -> Tuple[Tuple[int, int], Optional[str]]:
-        """Resolve source line numbers and range information using the original source."""
-        if not text or not self.source_lines:
+    def _resolve_source_range(
+        self, text: str, hint_line: Optional[int] = None
+    ) -> Tuple[Tuple[int, int], Optional[str]]:
+        """
+        Map construct text back to a line number in the original source.
+
+        Priority:
+        1. hint_line from loc() attribute
+        2. Exact normalised substring match
+        3. Token-based best match
+        4. (0, 0) — caller will skip this construct
+        """
+        if not self.source_lines:
+            if hint_line:
+                return (hint_line, hint_line), f"source.f90:{hint_line}:1"
             return (0, 0), None
 
-        normalized_target = self._normalize_source_text(text).replace(' ', '')
-        if not normalized_target:
+        # If we have a loc() hint, validate it quickly then accept
+        if hint_line and 1 <= hint_line <= len(self.source_lines):
+            line_len = len(self.source_lines[hint_line - 1])
+            return (hint_line, hint_line), f"source.f90:{hint_line}:1-{hint_line}:{line_len}"
+
+        # Normalise text for comparison
+        norm_text = self._normalise(text).replace(' ', '')
+        if not norm_text or norm_text.startswith('['):
             return (0, 0), None
 
-        best_match = None
-        for idx, line in enumerate(self.source_lines, start=1):
-            normalized_line = self._normalize_source_text(line).replace(' ', '')
-            if normalized_target in normalized_line:
-                return (idx, idx), f"source.f90:{idx}:1-{idx}:{len(line)}"
-            if all(token in normalized_line for token in self._extract_search_tokens(text)):
-                best_match = idx
+        best_line = None
+        best_score = 0
+        tokens = self._tokens(text)
 
-        if best_match is not None:
-            line = self.source_lines[best_match - 1]
-            return (best_match, best_match), f"source.f90:{best_match}:1-{best_match}:{len(line)}"
+        for idx, src_line in enumerate(self.source_lines, start=1):
+            # Skip comments and blanks
+            stripped = src_line.strip()
+            if not stripped or stripped.startswith('!'):
+                continue
+            norm_src = self._normalise(src_line).replace(' ', '')
+
+            # Exact containment
+            if norm_text and norm_text in norm_src:
+                line_len = len(src_line)
+                return (idx, idx), f"source.f90:{idx}:1-{idx}:{line_len}"
+
+            # Token overlap score
+            if tokens:
+                score = sum(1 for t in tokens if t in norm_src) / len(tokens)
+                if score > best_score:
+                    best_score = score
+                    best_line = idx
+
+        if best_line and best_score >= 0.5:
+            line_len = len(self.source_lines[best_line - 1])
+            return (best_line, best_line), f"source.f90:{best_line}:1-{best_line}:{line_len}"
 
         return (0, 0), None
 
-    def _normalize_source_text(self, text: str) -> str:
-        """Normalize text for source matching."""
-        text = text.lower().strip()
-        # Normalize array constructor type spec [INTEGER(4):: -> [
-        text = re.sub(r'\[\w+\([0-9]+\)::', '[', text)
-        # Remove Fortran kind suffixes like _4, _8 AFTER the number (e.g., 1_4 -> 1, ::1_8 -> ::)
-        text = re.sub(r'::\d+_\d+', '::', text)
-        text = re.sub(r':(\d+)_\d+', r':\1', text)
-        text = re.sub(r'(\d)_\d+', r'\1', text)
-        # Normalize array specs: :: becomes :
-        text = text.replace('::', ':')
-        text = text.replace('(', ' ( ').replace(')', ' ) ').replace('[', ' [ ').replace(']', ' ] ')
-        text = text.replace('=', ' = ').replace('+', ' + ').replace('-', ' - ').replace('*', ' * ').replace('/', ' / ')
-        text = re.sub(r'[^a-z0-9\+\-\*\/=\(\)\[\]\:\s]', ' ', text)
-        text = re.sub(r'\s+', ' ', text)
-        return text.strip()
+    @staticmethod
+    def _normalise(text: str) -> str:
+        t = text.lower().strip()
+        t = re.sub(r'\[\w+\([0-9]+\)::', '[', t)
+        t = re.sub(r'::\d+_\d+', '::', t)
+        t = re.sub(r':(\d+)_\d+', r':\1', t)
+        t = re.sub(r'(\d)_\d+', r'\1', t)
+        t = t.replace('::', ':')
+        t = re.sub(r'[^a-z0-9+\-*/=()[\]:,\s]', ' ', t)
+        t = re.sub(r'\s+', ' ', t)
+        return t.strip()
 
-    def _extract_search_tokens(self, text: str) -> List[str]:
-        """Extract tokens for heuristic source matching."""
-        return [tok for tok in re.findall(r'[a-zA-Z_]\w*|\+|\-|\*|\/|==|/=|<=|>=|<|>', text) if tok]
+    @staticmethod
+    def _tokens(text: str) -> List[str]:
+        words = re.findall(r'[a-z_][a-z0-9_]*', text.lower())
+        # Drop very short / common tokens
+        return [w for w in words if len(w) > 1 and w not in ('to', 'in', 'of')]
 
+
+# ---------------------------------------------------------------------------
+# Semantics / symbol-table parser
+# ---------------------------------------------------------------------------
 
 class SemanticsParser:
-    """Extracts symbol table and type information from Fortran semantics dumps."""
+    """Parses Flang ``-fdebug-dump-symbols`` output."""
 
-    SYMBOL_PATTERNS = {
-        'variable': r'^(\s*)(?P<name>\w+).*?(?P<type>REAL|INTEGER|LOGICAL|CHARACTER|COMPLEX)',
-        'parameter': r'PARAMETER.*?=.*?(?P<value>[\d\w\.\-]+)',
-        'array': r'DIMENSION.*?\[(?P<shape>[\d\*:, ]+)\]',
-        'derived': r'TYPE.*?::',
-    }
+    # Symbol table entry patterns
+    _SCOPE_PAT  = re.compile(r'^(\w[\w\s]*):\s*$')
+    _SYMBOL_PAT = re.compile(
+        r'^\s{2,}(\w+)\s*:.*?(\w+(?:\s+\w+)*(?:\([^)]*\))?)\s*(?:,\s*(.*))?$'
+    )
+    _TYPE_PAT   = re.compile(
+        r'(\w+(?:\s+\w+)*(?:\([^)]*\))?)\s*(?:,\s*(.+))?'
+    )
 
     def __init__(self, semantics_dump: str):
         self.dump = semantics_dump
-        self.lines = semantics_dump.split('\n')
-        self.symbols: Dict[str, SemanticSymbol] = {}
+        self.lines = semantics_dump.splitlines()
 
     def parse(self) -> Dict[str, SemanticSymbol]:
-        """Extract all symbols from semantics dump."""
-        self.symbols = {}
-        self._extract_symbols()
-        return self.symbols
+        symbols: Dict[str, SemanticSymbol] = {}
+        current_scope = 'global'
 
-    def _extract_symbols(self):
-        """Walk semantics dump and extract symbol definitions."""
-        current_scope = 'GLOBAL'
+        for line in self.lines:
+            # Detect scope header
+            m = self._SCOPE_PAT.match(line)
+            if m:
+                current_scope = m.group(1).strip()
+                continue
 
-        for i, line in enumerate(self.lines):
-            # Scope change detection
-            if 'PROGRAM' in line or 'SUBROUTINE' in line or 'FUNCTION' in line:
-                match = re.search(r'(PROGRAM|SUBROUTINE|FUNCTION)\s+(\w+)', line)
-                if match:
-                    current_scope = match.group(2)
+            # Try to extract symbol entry
+            sym = self._parse_symbol_line(line, current_scope)
+            if sym:
+                symbols[sym.name.lower()] = sym
 
-            # Symbol extraction
-            symbol = self._extract_symbol(line, current_scope)
-            if symbol:
-                self.symbols[symbol.name] = symbol
+        return symbols
 
-    def _extract_symbol(self, line: str, scope: str) -> Optional[SemanticSymbol]:
-        """Extract a single symbol from a semantics line."""
-        if not line.strip():
+    def _parse_symbol_line(self, line: str, scope: str) -> Optional[SemanticSymbol]:
+        if not line.strip() or line.strip().startswith('!'):
             return None
 
-        # Type detection
-        type_spec = None
-        for type_name in ['REAL', 'INTEGER', 'LOGICAL', 'CHARACTER', 'COMPLEX']:
-            if type_name in line:
-                type_spec = type_name
-                break
-
-        if not type_spec:
+        # Pattern: "  name: type [attrs]"
+        m = re.match(
+            r'^\s{2,}(\w+)\s*:\s*([\w\s*()]+?)(?:\s*,\s*(.*))?$', line
+        )
+        if not m:
             return None
 
-        # Name extraction
-        match = re.search(r'(\w+)\s+', line)
-        if not match:
-            return None
+        name = m.group(1).strip()
+        type_spec = m.group(2).strip()
+        attrs_raw = m.group(3) or ''
 
-        name = match.group(1)
-
-        # Kind detection
         kind = 'VARIABLE'
-        if 'PARAMETER' in line:
-            kind = 'PARAMETER'
-        elif 'DIMENSION' in line or '[' in line:
+        if 'array' in type_spec.lower() or '(' in type_spec:
             kind = 'ARRAY'
-        elif 'ALLOCATABLE' in line:
-            kind = 'ALLOCATABLE'
-        elif 'POINTER' in line:
-            kind = 'POINTER'
-
-        # Attributes extraction
-        attributes = {}
-        if 'INTENT' in line:
-            match_intent = re.search(r'INTENT\s*\(\s*(\w+)\s*\)', line)
-            if match_intent:
-                attributes['intent'] = match_intent.group(1)
-
-        if 'VALUE' in line:
-            attributes['value'] = True
+        elif 'type' in type_spec.lower():
+            kind = 'DERIVED'
+        elif attrs_raw and 'parameter' in attrs_raw.lower():
+            kind = 'PARAMETER'
 
         return SemanticSymbol(
             name=name,
             kind=kind,
             type_spec=type_spec,
             scope=scope,
-            attributes=attributes
+            attributes={'attrs': attrs_raw} if attrs_raw else {},
         )
 
 
+# ---------------------------------------------------------------------------
+# HLFIR parser
+# ---------------------------------------------------------------------------
+
 class HLFIRParser:
-    """Extracts high-level Fortran IR operations with semantic structure preserved."""
+    """Parses Flang HLFIR (``-emit-hlfir``) MLIR text."""
+
+    _LOC_PAT = re.compile(r'loc\(["\'].*?["\']?\s*:(\d+)\s*:\s*(\d+)\)')
+    _RESULT_PAT = re.compile(r'(%[\w.]+(?:,\s*%[\w.]+)*)\s*=')
+    _OP_PAT = re.compile(r'(hlfir\.\w+|fir\.\w+|arith\.\w+|func\.\w+|cf\.\w+)\b')
 
     def __init__(self, hlfir_dump: str):
         self.dump = hlfir_dump
         self.lines = hlfir_dump.splitlines()
-        self.operations: List[IROperation] = []
 
     def parse(self) -> List[IROperation]:
-        """Extract operations from HLFIR dump."""
-        self.operations = []
-        self._extract_operations()
-        return self.operations
-
-    def _extract_operations(self):
-        """Extract HLFIR operations, preserving high-level semantics."""
+        ops: List[IROperation] = []
         for line in self.lines:
-            op = self._parse_operation_line(line)
+            op = self._parse_op_line(line)
             if op:
-                self.operations.append(op)
+                ops.append(op)
+        return ops
 
-    def _parse_operation_line(self, line: str) -> Optional[IROperation]:
-        """Parse a single HLFIR operation line."""
+    def _parse_op_line(self, line: str) -> Optional[IROperation]:
         stripped = line.strip()
-        if not stripped or stripped.startswith('//'):
+        if not stripped or stripped.startswith('//') or stripped.startswith('#'):
             return None
 
-        match = re.match(r'(?:(%[\w#\.]+)\s*=\s*)?(hlfir\.\w+)\s*(.*)$', stripped)
-        if not match:
+        m_op = self._OP_PAT.search(stripped)
+        if not m_op:
             return None
 
-        result = match.group(1)
-        op_name = match.group(2)
-        rest = match.group(3)
-        operands = self._parse_operands(rest)
-        source_range = self._extract_source_range(line)
+        op_name = m_op.group(1)
+        results = self._RESULT_PAT.findall(stripped)
+        results = [r.strip() for r in (results[0].split(',') if results else [])]
+        operands = re.findall(r'%[\w.]+', stripped[m_op.end():])
+
+        # Extract loc() attribute
+        src_line, src_col, src_range, debug_loc = None, None, None, None
+        m_loc = self._LOC_PAT.search(stripped)
+        if m_loc:
+            src_line = int(m_loc.group(1))
+            src_col = int(m_loc.group(2))
+            src_range = f"source.f90:{src_line}:{src_col}"
+            debug_loc = f"{src_line}:{src_col}"
 
         return IROperation(
             op_name=op_name,
             operands=operands,
-            results=[result] if result else [],
-            source_range=source_range
+            results=results,
+            source_range=src_range,
+            src_line=src_line,
+            debug_loc=debug_loc,
+            raw=stripped,
         )
 
-    def _parse_operands(self, rest: str) -> List[str]:
-        """Extract operands from an HLFIR operation string."""
-        if not rest:
-            return []
 
-        operand_part = rest.split(':', 1)[0]
-        operand_part = operand_part.split('{', 1)[0]
-        operand_part = operand_part.replace(' to ', ', ')
-        operand_part = operand_part.replace(' unordered', '')
-
-        tokens = [tok.strip() for tok in re.split(r'[(),\s]+', operand_part) if tok.strip()]
-        return [tok for tok in tokens if tok not in {'to', 'unordered', 'shape', 'fastmath', 'contract'}]
-
-    def _extract_source_range(self, line: str) -> Optional[str]:
-        """Extract source location from MLIR loc() attribute."""
-        match = re.search(r'loc\("([^"]+)"\)', line)
-        if match:
-            return match.group(1)
-        return None
-
+# ---------------------------------------------------------------------------
+# FIR parser
+# ---------------------------------------------------------------------------
 
 class FIRParser:
-    """Extracts lowered SSA operations from FIR with provenance tracking."""
+    """Parses Flang FIR (``-emit-fir``) MLIR text."""
+
+    _LOC_PAT = re.compile(r'loc\(["\'].*?["\']?\s*:(\d+)\s*:\s*(\d+)\)')
+    _RESULT_PAT = re.compile(r'((?:%[\w.]+)(?:\s*,\s*%[\w.]+)*)\s*=')
+    _OP_PAT = re.compile(
+        r'(fir\.\w+|hlfir\.\w+|arith\.\w+|func\.\w+|omp\.\w+|cf\.\w+|llvm\.\w+)\b'
+    )
 
     def __init__(self, fir_dump: str):
         self.dump = fir_dump
         self.lines = fir_dump.splitlines()
-        self.operations: List[IROperation] = []
-        self.construct_map: Dict[str, List[IROperation]] = {}
 
     def parse(self) -> List[IROperation]:
-        """Extract operations from FIR dump."""
-        self.operations = []
-        self._extract_operations()
-        self._group_by_provenance()
-        return self.operations
-
-    def _extract_operations(self):
-        """Extract FIR operations with source provenance."""
-        block_stack = []
+        ops: List[IROperation] = []
         for line in self.lines:
-            stripped = line.strip()
-            if stripped.startswith('fir.do_loop') and '{' in stripped:
-                block_stack.append('fir.do_loop')
-
-            op = self._parse_operation_line(line)
+            op = self._parse_op_line(line)
             if op:
-                op.parent_block = block_stack[-1] if block_stack else None
-                self.operations.append(op)
+                ops.append(op)
+        return ops
 
-            if stripped == '}' and block_stack:
-                block_stack.pop()
-
-    def _parse_operation_line(self, line: str) -> Optional[IROperation]:
-        """Parse a FIR operation line."""
+    def _parse_op_line(self, line: str) -> Optional[IROperation]:
         stripped = line.strip()
-        if not stripped or stripped.startswith('//'):
+        if not stripped or stripped.startswith('//') or stripped.startswith('#'):
             return None
 
-        match = re.match(
-            r'(?:(%[\w#\.]+)\s*=\s*)?(fir\.\w+|arith\.\w+)\s*(.*)$',
-            stripped
-        )
-        if not match:
+        m_op = self._OP_PAT.search(stripped)
+        if not m_op:
             return None
 
-        result = match.group(1)
-        op_name = match.group(2)
-        rest = match.group(3)
+        op_name = m_op.group(1)
+        results = self._RESULT_PAT.findall(stripped)
+        results = [r.strip() for r in (results[0].split(',') if results else [])]
+        operands = re.findall(r'%[\w.]+', stripped[m_op.end():])
 
-        operand_section = rest.split(':', 1)[0]
-        operand_section = operand_section.split('{', 1)[0]
-        operands = [tok.strip() for tok in re.split(r'[(),\s]+', operand_section) if tok.strip()]
-        operands = [tok for tok in operands if tok not in {'to', 'step', 'unordered', 'shape', 'fastmath', 'contract', 'tuple', 'none'}]
-
-        debug_loc = None
-        debug_match = re.search(r'!dbg\s*!([0-9]+)', line)
-        if debug_match:
-            debug_loc = f"metadata_id_{debug_match.group(1)}"
-
-        source_range = self._extract_source_range(line)
+        src_line, src_col, src_range, debug_loc = None, None, None, None
+        m_loc = self._LOC_PAT.search(stripped)
+        if m_loc:
+            src_line = int(m_loc.group(1))
+            src_col = int(m_loc.group(2))
+            src_range = f"source.f90:{src_line}:{src_col}"
+            debug_loc = f"{src_line}:{src_col}"
 
         return IROperation(
             op_name=op_name,
             operands=operands,
-            results=[result] if result else [],
-            source_range=source_range,
-            debug_loc=debug_loc
+            results=results,
+            source_range=src_range,
+            src_line=src_line,
+            debug_loc=debug_loc,
+            raw=stripped,
         )
 
-    def _extract_source_range(self, line: str) -> Optional[str]:
-        """Extract source location from FIR operation."""
-        match = re.search(r'loc\("([^"]+)"\)', line)
-        if match:
-            return match.group(1)
-        return None
 
-    def _group_by_provenance(self):
-        """Group operations by their source provenance."""
-        self.construct_map.clear()
-
-        for op in self.operations:
-            if op.source_range:
-                if op.source_range not in self.construct_map:
-                    self.construct_map[op.source_range] = []
-                self.construct_map[op.source_range].append(op)
-
-    def get_ops_for_source_range(self, source_range: str) -> List[IROperation]:
-        """Get all FIR operations for a source range (one-to-many mapping)."""
-        return self.construct_map.get(source_range, [])
-
+# ---------------------------------------------------------------------------
+# LLVM IR parser
+# ---------------------------------------------------------------------------
 
 class LLVMParser:
-    """Extracts LLVM IR instructions with debug metadata correlation."""
+    """
+    Parses Flang LLVM IR (``-emit-llvm``) with debug info.
 
-    def __init__(self, llvm_ir: str):
-        self.dump = llvm_ir
-        self.lines = llvm_ir.split('\n')
-        self.instructions: List[Dict] = []
-        self.debug_metadata: Dict[int, Dict] = {}
+    Resolves ``!dbg !N`` references against
+    ``!N = !DILocation(line: L, column: C, scope: !M)`` metadata.
+    """
+
+    _DILOCN_PAT = re.compile(
+        r'^!(\d+)\s*=\s*!DILocation\(line:\s*(\d+),\s*column:\s*(\d+)'
+    )
+    _DBG_REF_PAT = re.compile(r'!dbg\s*!(\d+)')
+    _INSTR_PAT = re.compile(
+        r'(%[\w.]+\s*=\s*|store\s|load\s|br\s|ret\s|call\s|icmp\s|fcmp\s'
+        r'|add\s|sub\s|mul\s|div\s|getelementptr\s)'
+    )
+
+    def __init__(self, llvm_dump: str):
+        self.dump = llvm_dump
+        self.lines = llvm_dump.splitlines()
+        self._dilocn: Dict[str, Dict] = {}
+        self._build_dilocation_map()
+
+    def _build_dilocation_map(self):
+        """First pass: collect all !DILocation metadata entries."""
+        for line in self.lines:
+            m = self._DILOCN_PAT.match(line.strip())
+            if m:
+                self._dilocn[m.group(1)] = {
+                    'line': int(m.group(2)),
+                    'column': int(m.group(3)),
+                }
 
     def parse(self) -> List[Dict]:
-        """Extract instructions from LLVM IR."""
-        self.instructions = []
-        self._extract_debug_metadata()
-        self._extract_instructions()
-        return self.instructions
-
-    def _extract_debug_metadata(self):
-        """Extract debug metadata mappings."""
-        for i, line in enumerate(self.lines):
-            if '!dbg' in line:
-                match = re.search(r'!(\d+)', line)
-                if match:
-                    metadata_id = int(match.group(1))
-                    # Store line number for this metadata ID
-                    if metadata_id not in self.debug_metadata:
-                        self.debug_metadata[metadata_id] = {}
-                    self.debug_metadata[metadata_id]['line'] = i
-
-    def _extract_instructions(self):
-        """Extract LLVM instructions relevant to Fortran semantics."""
-        for i, line in enumerate(self.lines):
-            if not line.strip() or line.startswith(';'):
+        """Return list of instruction dicts with resolved source lines."""
+        instrs = []
+        for line in self.lines:
+            stripped = line.strip()
+            if not stripped or stripped.startswith(';') or stripped.startswith('!'):
+                continue
+            if not self._INSTR_PAT.search(stripped):
                 continue
 
-            op_types = [
-                'fadd', 'fsub', 'fmul', 'fdiv',
-                'add', 'sub', 'mul', 'sdiv', 'udiv',
-                'icmp', 'fcmp', 'load', 'store', 'call'
-            ]
+            src_line = None
+            src_col = None
+            m_dbg = self._DBG_REF_PAT.search(stripped)
+            if m_dbg:
+                ref = m_dbg.group(1)
+                if ref in self._dilocn:
+                    src_line = self._dilocn[ref]['line']
+                    src_col = self._dilocn[ref]['column']
 
-            for op_type in op_types:
-                if re.search(rf'\b{re.escape(op_type)}\b', line):
-                    instr = self._parse_instruction(line, op_type)
-                    if instr:
-                        self.instructions.append(instr)
-                    break
-
-    def _parse_instruction(self, line: str, op_type: str) -> Optional[Dict]:
-        """Parse a single LLVM instruction."""
-        debug_loc = None
-        match_dbg = re.search(r'!dbg !([0-9]+)', line)
-        if match_dbg:
-            debug_loc = f"metadata_id_{match_dbg.group(1)}"
-
-        return {
-            'op': op_type,
-            'line': line.strip(),
-            'debug_loc': debug_loc
-        }
-
-
-class StageExtractor:
-    """Unified interface for stage-aware extraction."""
-
-    def __init__(self, fortran_code: str, parse_tree: str, semantics: str,
-                 hlfir: str, fir: str, llvm_ir: str):
-        self.source = fortran_code
-        self.parse_tree_parser = ParseTreeParser(parse_tree, fortran_code)
-        self.semantics_parser = SemanticsParser(semantics)
-        self.hlfir_parser = HLFIRParser(hlfir)
-        self.fir_parser = FIRParser(fir)
-        self.llvm_parser = LLVMParser(llvm_ir)
-
-    def extract_all(self) -> Dict:
-        """Extract semantic information from all stages."""
-        return {
-            'parse_tree': [c.to_dict() for c in self.parse_tree_parser.parse()],
-            'semantics': {k: v.to_dict() for k, v in self.semantics_parser.parse().items()},
-            'hlfir': [op.to_dict() for op in self.hlfir_parser.parse()],
-            'fir': [op.to_dict() for op in self.fir_parser.parse()],
-            'llvm': self.llvm_parser.parse(),
-        }
-
-    def get_construct_by_source_range(self, source_range: str) -> Dict:
-        """Get all related constructs/operations for a source range."""
-        return {
-            'fir_ops': [op.to_dict() for op in self.fir_parser.get_ops_for_source_range(source_range)]
-        }
+            instrs.append({
+                'line': stripped,
+                'src_line': src_line,
+                'src_col': src_col,
+                'debug_loc': f"{src_line}:{src_col}" if src_line else None,
+            })
+        return instrs
