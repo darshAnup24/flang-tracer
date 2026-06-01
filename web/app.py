@@ -36,22 +36,10 @@ def validate_fortran_code(code):
 
     code = code.strip()
     if not code:
-        return False, "Empty code"
+        return False, "Empty code — please enter some Fortran code."
 
     if len(code) > MAX_CODE_SIZE:
-        return False, "Code too large"
-
-    has_keyword = any(
-        line.strip().lower().startswith(tuple(FORTRAN_KEYWORDS))
-        for line in code.split('\n')
-        if line.strip() and not line.strip().startswith('!')
-    )
-
-    if not has_keyword:
-        return False, "Missing Fortran keyword"
-
-    if 'end' not in code.lower():
-        return False, "Missing end statement"
+        return False, f"Code too large (max {MAX_CODE_SIZE // 1024} KB)."
 
     return True, None
 
