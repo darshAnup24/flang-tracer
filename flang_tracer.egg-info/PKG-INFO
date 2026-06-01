@@ -4,4 +4,5 @@ Version: 0.1.0
 Requires-Dist: click
 Requires-Dist: rich
 Requires-Dist: pytest
+Requires-Dist: flask
 Dynamic: requires-dist

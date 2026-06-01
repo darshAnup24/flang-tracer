@@ -1,0 +1,1858 @@
+{
+  "metadata": {
+    "correlation_stats": {
+      "total_constructs": 2,
+      "correlated_constructs": 2,
+      "correlation_rate": 100.0,
+      "avg_fir_ops_per_construct": 5.0
+    },
+    "num_constructs": 2
+  },
+  "nodes": [
+    {
+      "construct": {
+        "kind": "forall_construct",
+        "id": "f8094089a565f31a",
+        "line_range": [
+          8,
+          8
+        ],
+        "source_range": "source.f90:8:1-8:33",
+        "variables": [
+          "i",
+          "j"
+        ],
+        "operators": [
+          "=="
+        ]
+      },
+      "source": "FORALL (i=1:5, j=1:5, i == j)",
+      "parse_tree": [],
+      "semantics": [],
+      "hlfir_ops": [
+        {
+          "op_name": "fir.defaultkind",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "module attributes {dlti.dl_spec = #dlti.dl_spec<!llvm.ptr<270> = dense<32> : vector<4xi64>, !llvm.ptr<271> = dense<32> : vector<4xi64>, !llvm.ptr<272> = dense<64> : vector<4xi64>, i64 = dense<64> : vector<2xi64>, i128 = dense<128> : vector<2xi64>, f80 = dense<128> : vector<2xi64>, !llvm.ptr = dense<64> : vector<4xi64>, i1 = dense<8> : vector<2xi64>, i8 = dense<8> : vector<2xi64>, i16 = dense<16> : vector<2xi64>, i32 = dense<32> : vector<2xi64>, f16 = dense<16> : vector<2xi64>, f64 = dense<64> : vector<2xi64>, f128 = dense<128> : vector<2xi64>, \"dlti.endianness\" = \"little\", \"dlti.mangling_mode\" = \"e\", \"dlti.legal_int_widths\" = array<i32: 8, 16, 32, 64>, \"dlti.stack_alignment\" = 128 : i64>, fir.defaultkind = \"a1c4d8i4l4r4\", fir.kindmap = \"\", llvm.data_layout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\", llvm.ident = \"flang version 21.1.8\", llvm.target_triple = \"x86_64-redhat-linux-gnu\"} {"
+        },
+        {
+          "op_name": "func.func",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "func.func @_QQmain() attributes {fir.bindc_name = \"forall_construct\"} {"
+        },
+        {
+          "op_name": "fir.dummy_scope",
+          "operands": [],
+          "results": [
+            "%0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%0 = fir.dummy_scope : !fir.dscope"
+        },
+        {
+          "op_name": "fir.address_of",
+          "operands": [],
+          "results": [
+            "%1"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%1 = fir.address_of(@_QFEa) : !fir.ref<!fir.array<5x5xi32>>"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c5"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c5 = arith.constant 5 : index"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c5_0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c5_0 = arith.constant 5 : index"
+        },
+        {
+          "op_name": "fir.shape",
+          "operands": [
+            "%c5",
+            "%c5_0"
+          ],
+          "results": [
+            "%2"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%2 = fir.shape %c5, %c5_0 : (index, index) -> !fir.shape<2>"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%1",
+            "%2"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%3:2 = hlfir.declare %1(%2) {uniq_name = \"_QFEa\"} : (!fir.ref<!fir.array<5x5xi32>>, !fir.shape<2>) -> (!fir.ref<!fir.array<5x5xi32>>, !fir.ref<!fir.array<5x5xi32>>)"
+        },
+        {
+          "op_name": "fir.alloca",
+          "operands": [],
+          "results": [
+            "%4"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%4 = fir.alloca i32 {bindc_name = \"i\", uniq_name = \"_QFEi\"}"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%4"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%5:2 = hlfir.declare %4 {uniq_name = \"_QFEi\"} : (!fir.ref<i32>) -> (!fir.ref<i32>, !fir.ref<i32>)"
+        },
+        {
+          "op_name": "fir.alloca",
+          "operands": [],
+          "results": [
+            "%6"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%6 = fir.alloca i32 {bindc_name = \"j\", uniq_name = \"_QFEj\"}"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%6"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%7:2 = hlfir.declare %6 {uniq_name = \"_QFEj\"} : (!fir.ref<i32>) -> (!fir.ref<i32>, !fir.ref<i32>)"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c1_i32"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c1_i32 = arith.constant 1 : i32"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c5_i32"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c5_i32 = arith.constant 5 : i32"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c1_i32_1"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c1_i32_1 = arith.constant 1 : i32"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c5_i32_2"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c5_i32_2 = arith.constant 5 : i32"
+        },
+        {
+          "op_name": "hlfir.forall",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.forall lb {"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%c1_i32"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %c1_i32 : i32"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%c5_i32"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %c5_i32 : i32"
+        },
+        {
+          "op_name": "hlfir.forall_index",
+          "operands": [
+            "%arg0"
+          ],
+          "results": [
+            "%8"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%8 = hlfir.forall_index \"i\" %arg0 : (i32) -> !fir.ref<i32>"
+        },
+        {
+          "op_name": "hlfir.forall",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.forall lb {"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%c1_i32_1"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %c1_i32_1 : i32"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%c5_i32_2"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %c5_i32_2 : i32"
+        },
+        {
+          "op_name": "hlfir.forall_index",
+          "operands": [
+            "%arg1"
+          ],
+          "results": [
+            "%9"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%9 = hlfir.forall_index \"j\" %arg1 : (i32) -> !fir.ref<i32>"
+        },
+        {
+          "op_name": "hlfir.forall_mask",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.forall_mask {"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%8"
+          ],
+          "results": [
+            "%10"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%10 = fir.load %8 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%9"
+          ],
+          "results": [
+            "%11"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%11 = fir.load %9 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "arith.cmpi",
+          "operands": [
+            "%10",
+            "%11"
+          ],
+          "results": [
+            "%12"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%12 = arith.cmpi eq, %10, %11 : i32"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%12"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %12 : i1"
+        },
+        {
+          "op_name": "hlfir.region_assign",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.region_assign {"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c1_i32_3"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c1_i32_3 = arith.constant 1 : i32"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%c1_i32_3"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %c1_i32_3 : i32"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%8"
+          ],
+          "results": [
+            "%10"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%10 = fir.load %8 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.convert",
+          "operands": [
+            "%10"
+          ],
+          "results": [
+            "%11"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%11 = fir.convert %10 : (i32) -> i64"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%9"
+          ],
+          "results": [
+            "%12"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%12 = fir.load %9 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.convert",
+          "operands": [
+            "%12"
+          ],
+          "results": [
+            "%13"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%13 = fir.convert %12 : (i32) -> i64"
+        },
+        {
+          "op_name": "hlfir.designate",
+          "operands": [
+            "%3",
+            "%11",
+            "%13"
+          ],
+          "results": [
+            "%14"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%14 = hlfir.designate %3#0 (%11, %13)  : (!fir.ref<!fir.array<5x5xi32>>, i64, i64) -> !fir.ref<i32>"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%14"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %14 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.global",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.global internal @_QFEa : !fir.array<5x5xi32> {"
+        },
+        {
+          "op_name": "fir.zero_bits",
+          "operands": [],
+          "results": [
+            "%0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%0 = fir.zero_bits !fir.array<5x5xi32>"
+        },
+        {
+          "op_name": "fir.has_value",
+          "operands": [
+            "%0"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.has_value %0 : !fir.array<5x5xi32>"
+        },
+        {
+          "op_name": "func.func",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "func.func private @_FortranAProgramStart(i32, !llvm.ptr, !llvm.ptr, !llvm.ptr)"
+        },
+        {
+          "op_name": "func.func",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "func.func private @_FortranAProgramEndStatement()"
+        },
+        {
+          "op_name": "func.func",
+          "operands": [
+            "%arg0",
+            "%arg1",
+            "%arg2"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "func.func @main(%arg0: i32, %arg1: !llvm.ptr, %arg2: !llvm.ptr) -> i32 {"
+        },
+        {
+          "op_name": "fir.zero_bits",
+          "operands": [],
+          "results": [
+            "%0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%0 = fir.zero_bits !fir.ref<tuple<i32, !fir.ref<!fir.array<0xtuple<!fir.ref<i8>, !fir.ref<i8>>>>>>"
+        },
+        {
+          "op_name": "fir.call",
+          "operands": [
+            "%arg0",
+            "%arg1",
+            "%arg2",
+            "%0"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.call @_FortranAProgramStart(%arg0, %arg1, %arg2, %0) fastmath<contract> : (i32, !llvm.ptr, !llvm.ptr, !fir.ref<tuple<i32, !fir.ref<!fir.array<0xtuple<!fir.ref<i8>, !fir.ref<i8>>>>>>) -> ()"
+        },
+        {
+          "op_name": "fir.call",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.call @_QQmain() fastmath<contract> : () -> ()"
+        },
+        {
+          "op_name": "fir.call",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.call @_FortranAProgramEndStatement() fastmath<contract> : () -> ()"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c0_i32"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c0_i32 = arith.constant 0 : i32"
+        }
+      ],
+      "fir_ops": [
+        {
+          "op_name": "fir.do_loop",
+          "operands": [
+            "%arg0",
+            "%10",
+            "%11",
+            "%c1"
+          ],
+          "results": [
+            "%arg0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.do_loop %arg0 = %10 to %11 step %c1 {"
+        },
+        {
+          "op_name": "fir.do_loop",
+          "operands": [
+            "%arg1",
+            "%12",
+            "%13",
+            "%c1"
+          ],
+          "results": [
+            "%arg1"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.do_loop %arg1 = %12 to %13 step %c1 {"
+        },
+        {
+          "op_name": "fir.array_coor",
+          "operands": [
+            "%5",
+            "%4",
+            "%20",
+            "%22"
+          ],
+          "results": [
+            "%23"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%23 = fir.array_coor %5(%4) %20, %22 : (!fir.ref<!fir.array<5x5xi32>>, !fir.shape<2>, i64, i64) -> !fir.ref<i32>"
+        }
+      ],
+      "llvm_instrs": [
+        {
+          "line": "%1 = alloca i32, i64 1, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%2 = alloca i32, i64 1, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%3 = alloca i32, i64 1, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%4 = alloca i32, i64 1, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%6 = phi i64 [ %38, %37 ], [ 1, %0 ]",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%7 = phi i64 [ %39, %37 ], [ 5, %0 ]",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%8 = icmp sgt i64 %7, 0",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "br i1 %8, label %9, label %40",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%10 = trunc i64 %6 to i32",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "store i32 %10, ptr %3, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%12 = phi i64 [ %35, %34 ], [ 1, %9 ]",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%13 = phi i64 [ %36, %34 ], [ 5, %9 ]",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%14 = icmp sgt i64 %13, 0",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "br i1 %14, label %15, label %37",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%16 = trunc i64 %12 to i32",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "store i32 %16, ptr %4, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%17 = load i32, ptr %3, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%18 = load i32, ptr %4, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%19 = icmp eq i32 %17, %18",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "br i1 %19, label %20, label %34",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%21 = load i32, ptr %3, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%22 = sext i32 %21 to i64",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%23 = load i32, ptr %4, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%24 = sext i32 %23 to i64",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%25 = sub nsw i64 %22, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%26 = mul nsw i64 %25, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%27 = mul nsw i64 %26, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%28 = add nsw i64 %27, 0",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%29 = sub nsw i64 %24, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%30 = mul nsw i64 %29, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%31 = mul nsw i64 %30, 5",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%32 = add nsw i64 %31, %28",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%33 = getelementptr i32, ptr @_QFEa, i64 %32",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "store i32 1, ptr %33, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%35 = add nsw i64 %12, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%36 = sub i64 %13, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%38 = add nsw i64 %6, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%39 = sub i64 %7, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "ret void",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "call void @_QQmain()",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "call void @_FortranAProgramEndStatement()",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "ret i32 0",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        }
+      ],
+      "metadata": {
+        "num_hlfir_ops": 49,
+        "num_fir_ops": 3,
+        "num_llvm_instrs": 43,
+        "fully_correlated": true
+      }
+    },
+    {
+      "construct": {
+        "kind": "scalar_assignment",
+        "id": "5c3a0e7724015bde",
+        "line_range": [
+          9,
+          9
+        ],
+        "source_range": "source.f90:9:1-9:19",
+        "variables": [
+          "A",
+          "i",
+          "j"
+        ],
+        "operators": []
+      },
+      "source": "A(i, j) = 1",
+      "parse_tree": [],
+      "semantics": [],
+      "hlfir_ops": [
+        {
+          "op_name": "fir.defaultkind",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "module attributes {dlti.dl_spec = #dlti.dl_spec<!llvm.ptr<270> = dense<32> : vector<4xi64>, !llvm.ptr<271> = dense<32> : vector<4xi64>, !llvm.ptr<272> = dense<64> : vector<4xi64>, i64 = dense<64> : vector<2xi64>, i128 = dense<128> : vector<2xi64>, f80 = dense<128> : vector<2xi64>, !llvm.ptr = dense<64> : vector<4xi64>, i1 = dense<8> : vector<2xi64>, i8 = dense<8> : vector<2xi64>, i16 = dense<16> : vector<2xi64>, i32 = dense<32> : vector<2xi64>, f16 = dense<16> : vector<2xi64>, f64 = dense<64> : vector<2xi64>, f128 = dense<128> : vector<2xi64>, \"dlti.endianness\" = \"little\", \"dlti.mangling_mode\" = \"e\", \"dlti.legal_int_widths\" = array<i32: 8, 16, 32, 64>, \"dlti.stack_alignment\" = 128 : i64>, fir.defaultkind = \"a1c4d8i4l4r4\", fir.kindmap = \"\", llvm.data_layout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\", llvm.ident = \"flang version 21.1.8\", llvm.target_triple = \"x86_64-redhat-linux-gnu\"} {"
+        },
+        {
+          "op_name": "func.func",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "func.func @_QQmain() attributes {fir.bindc_name = \"forall_construct\"} {"
+        },
+        {
+          "op_name": "fir.dummy_scope",
+          "operands": [],
+          "results": [
+            "%0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%0 = fir.dummy_scope : !fir.dscope"
+        },
+        {
+          "op_name": "fir.address_of",
+          "operands": [],
+          "results": [
+            "%1"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%1 = fir.address_of(@_QFEa) : !fir.ref<!fir.array<5x5xi32>>"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c5"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c5 = arith.constant 5 : index"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c5_0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c5_0 = arith.constant 5 : index"
+        },
+        {
+          "op_name": "fir.shape",
+          "operands": [
+            "%c5",
+            "%c5_0"
+          ],
+          "results": [
+            "%2"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%2 = fir.shape %c5, %c5_0 : (index, index) -> !fir.shape<2>"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%1",
+            "%2"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%3:2 = hlfir.declare %1(%2) {uniq_name = \"_QFEa\"} : (!fir.ref<!fir.array<5x5xi32>>, !fir.shape<2>) -> (!fir.ref<!fir.array<5x5xi32>>, !fir.ref<!fir.array<5x5xi32>>)"
+        },
+        {
+          "op_name": "fir.alloca",
+          "operands": [],
+          "results": [
+            "%4"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%4 = fir.alloca i32 {bindc_name = \"i\", uniq_name = \"_QFEi\"}"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%4"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%5:2 = hlfir.declare %4 {uniq_name = \"_QFEi\"} : (!fir.ref<i32>) -> (!fir.ref<i32>, !fir.ref<i32>)"
+        },
+        {
+          "op_name": "fir.alloca",
+          "operands": [],
+          "results": [
+            "%6"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%6 = fir.alloca i32 {bindc_name = \"j\", uniq_name = \"_QFEj\"}"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%6"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%7:2 = hlfir.declare %6 {uniq_name = \"_QFEj\"} : (!fir.ref<i32>) -> (!fir.ref<i32>, !fir.ref<i32>)"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c1_i32"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c1_i32 = arith.constant 1 : i32"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c5_i32"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c5_i32 = arith.constant 5 : i32"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c1_i32_1"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c1_i32_1 = arith.constant 1 : i32"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c5_i32_2"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c5_i32_2 = arith.constant 5 : i32"
+        },
+        {
+          "op_name": "hlfir.forall",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.forall lb {"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%c1_i32"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %c1_i32 : i32"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%c5_i32"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %c5_i32 : i32"
+        },
+        {
+          "op_name": "hlfir.forall_index",
+          "operands": [
+            "%arg0"
+          ],
+          "results": [
+            "%8"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%8 = hlfir.forall_index \"i\" %arg0 : (i32) -> !fir.ref<i32>"
+        },
+        {
+          "op_name": "hlfir.forall",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.forall lb {"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%c1_i32_1"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %c1_i32_1 : i32"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%c5_i32_2"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %c5_i32_2 : i32"
+        },
+        {
+          "op_name": "hlfir.forall_index",
+          "operands": [
+            "%arg1"
+          ],
+          "results": [
+            "%9"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%9 = hlfir.forall_index \"j\" %arg1 : (i32) -> !fir.ref<i32>"
+        },
+        {
+          "op_name": "hlfir.forall_mask",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.forall_mask {"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%8"
+          ],
+          "results": [
+            "%10"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%10 = fir.load %8 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%9"
+          ],
+          "results": [
+            "%11"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%11 = fir.load %9 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "arith.cmpi",
+          "operands": [
+            "%10",
+            "%11"
+          ],
+          "results": [
+            "%12"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%12 = arith.cmpi eq, %10, %11 : i32"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%12"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %12 : i1"
+        },
+        {
+          "op_name": "hlfir.region_assign",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.region_assign {"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c1_i32_3"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c1_i32_3 = arith.constant 1 : i32"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%c1_i32_3"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %c1_i32_3 : i32"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%8"
+          ],
+          "results": [
+            "%10"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%10 = fir.load %8 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.convert",
+          "operands": [
+            "%10"
+          ],
+          "results": [
+            "%11"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%11 = fir.convert %10 : (i32) -> i64"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%9"
+          ],
+          "results": [
+            "%12"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%12 = fir.load %9 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.convert",
+          "operands": [
+            "%12"
+          ],
+          "results": [
+            "%13"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%13 = fir.convert %12 : (i32) -> i64"
+        },
+        {
+          "op_name": "hlfir.designate",
+          "operands": [
+            "%3",
+            "%11",
+            "%13"
+          ],
+          "results": [
+            "%14"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%14 = hlfir.designate %3#0 (%11, %13)  : (!fir.ref<!fir.array<5x5xi32>>, i64, i64) -> !fir.ref<i32>"
+        },
+        {
+          "op_name": "hlfir.yield",
+          "operands": [
+            "%14"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "hlfir.yield %14 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.global",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.global internal @_QFEa : !fir.array<5x5xi32> {"
+        },
+        {
+          "op_name": "fir.zero_bits",
+          "operands": [],
+          "results": [
+            "%0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%0 = fir.zero_bits !fir.array<5x5xi32>"
+        },
+        {
+          "op_name": "fir.has_value",
+          "operands": [
+            "%0"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.has_value %0 : !fir.array<5x5xi32>"
+        },
+        {
+          "op_name": "func.func",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "func.func private @_FortranAProgramStart(i32, !llvm.ptr, !llvm.ptr, !llvm.ptr)"
+        },
+        {
+          "op_name": "func.func",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "func.func private @_FortranAProgramEndStatement()"
+        },
+        {
+          "op_name": "func.func",
+          "operands": [
+            "%arg0",
+            "%arg1",
+            "%arg2"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "func.func @main(%arg0: i32, %arg1: !llvm.ptr, %arg2: !llvm.ptr) -> i32 {"
+        },
+        {
+          "op_name": "fir.zero_bits",
+          "operands": [],
+          "results": [
+            "%0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%0 = fir.zero_bits !fir.ref<tuple<i32, !fir.ref<!fir.array<0xtuple<!fir.ref<i8>, !fir.ref<i8>>>>>>"
+        },
+        {
+          "op_name": "fir.call",
+          "operands": [
+            "%arg0",
+            "%arg1",
+            "%arg2",
+            "%0"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.call @_FortranAProgramStart(%arg0, %arg1, %arg2, %0) fastmath<contract> : (i32, !llvm.ptr, !llvm.ptr, !fir.ref<tuple<i32, !fir.ref<!fir.array<0xtuple<!fir.ref<i8>, !fir.ref<i8>>>>>>) -> ()"
+        },
+        {
+          "op_name": "fir.call",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.call @_QQmain() fastmath<contract> : () -> ()"
+        },
+        {
+          "op_name": "fir.call",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.call @_FortranAProgramEndStatement() fastmath<contract> : () -> ()"
+        },
+        {
+          "op_name": "arith.constant",
+          "operands": [],
+          "results": [
+            "%c0_i32"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%c0_i32 = arith.constant 0 : i32"
+        }
+      ],
+      "fir_ops": [
+        {
+          "op_name": "fir.store",
+          "operands": [
+            "%14",
+            "%1"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.store %14 to %1 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.store",
+          "operands": [
+            "%15",
+            "%0"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.store %15 to %0 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%1"
+          ],
+          "results": [
+            "%16"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%16 = fir.load %1 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%0"
+          ],
+          "results": [
+            "%17"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%17 = fir.load %0 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%1"
+          ],
+          "results": [
+            "%19"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%19 = fir.load %1 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.load",
+          "operands": [
+            "%0"
+          ],
+          "results": [
+            "%21"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%21 = fir.load %0 : !fir.ref<i32>"
+        },
+        {
+          "op_name": "fir.store",
+          "operands": [
+            "%c1_i32",
+            "%23"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.store %c1_i32 to %23 : !fir.ref<i32>"
+        }
+      ],
+      "llvm_instrs": [
+        {
+          "line": "%1 = alloca i32, i64 1, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%2 = alloca i32, i64 1, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%3 = alloca i32, i64 1, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%4 = alloca i32, i64 1, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "br label %5",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%6 = phi i64 [ %38, %37 ], [ 1, %0 ]",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%7 = phi i64 [ %39, %37 ], [ 5, %0 ]",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%8 = icmp sgt i64 %7, 0",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "br i1 %8, label %9, label %40",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%10 = trunc i64 %6 to i32",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "store i32 %10, ptr %3, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "br label %11",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%12 = phi i64 [ %35, %34 ], [ 1, %9 ]",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%13 = phi i64 [ %36, %34 ], [ 5, %9 ]",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%14 = icmp sgt i64 %13, 0",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "br i1 %14, label %15, label %37",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%16 = trunc i64 %12 to i32",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "store i32 %16, ptr %4, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%17 = load i32, ptr %3, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%18 = load i32, ptr %4, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%19 = icmp eq i32 %17, %18",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "br i1 %19, label %20, label %34",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%21 = load i32, ptr %3, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%22 = sext i32 %21 to i64",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%23 = load i32, ptr %4, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%24 = sext i32 %23 to i64",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%25 = sub nsw i64 %22, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%26 = mul nsw i64 %25, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%27 = mul nsw i64 %26, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%28 = add nsw i64 %27, 0",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%29 = sub nsw i64 %24, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%30 = mul nsw i64 %29, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%31 = mul nsw i64 %30, 5",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%32 = add nsw i64 %31, %28",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%33 = getelementptr i32, ptr @_QFEa, i64 %32",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "store i32 1, ptr %33, align 4",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "br label %34",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%35 = add nsw i64 %12, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%36 = sub i64 %13, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "br label %11",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%38 = add nsw i64 %6, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "%39 = sub i64 %7, 1",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "br label %5",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "ret void",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "call void @_QQmain()",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "call void @_FortranAProgramEndStatement()",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "ret i32 0",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        }
+      ],
+      "metadata": {
+        "num_hlfir_ops": 49,
+        "num_fir_ops": 7,
+        "num_llvm_instrs": 48,
+        "fully_correlated": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "metadata": {
+    "correlation_stats": {
+      "total_constructs": 5,
+      "correlated_constructs": 0,
+      "correlation_rate": 0.0,
+      "avg_fir_ops_per_construct": 0.0
+    },
+    "num_constructs": 5
+  },
+  "nodes": [
+    {
+      "construct": {
+        "kind": "scalar_assignment",
+        "id": "d25907e49dac7480",
+        "line_range": [
+          7,
+          7
+        ],
+        "source_range": "source.f90:7:1-7:43",
+        "variables": [
+          "print_base",
+          "print_me",
+          "procedure"
+        ],
+        "operators": [
+          ">"
+        ]
+      },
+      "source": "procedure :: print_me => print_base",
+      "parse_tree": [],
+      "semantics": [],
+      "hlfir_ops": [],
+      "fir_ops": [],
+      "llvm_instrs": [],
+      "metadata": {
+        "num_hlfir_ops": 0,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 0,
+        "fully_correlated": false
+      }
+    },
+    {
+      "construct": {
+        "kind": "scalar_assignment",
+        "id": "0e957ecbfdca1cc1",
+        "line_range": [
+          12,
+          12
+        ],
+        "source_range": "source.f90:12:1-12:44",
+        "variables": [
+          "print_child",
+          "print_me",
+          "procedure"
+        ],
+        "operators": [
+          ">"
+        ]
+      },
+      "source": "procedure :: print_me => print_child",
+      "parse_tree": [],
+      "semantics": [],
+      "hlfir_ops": [],
+      "fir_ops": [],
+      "llvm_instrs": [],
+      "metadata": {
+        "num_hlfir_ops": 0,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 0,
+        "fully_correlated": false
+      }
+    },
+    {
+      "construct": {
+        "kind": "user_call",
+        "id": "5d6666971f1a2071",
+        "line_range": [
+          19,
+          19
+        ],
+        "source_range": "source.f90:19:1-19:23",
+        "variables": [
+          "obj",
+          "print_me"
+        ],
+        "operators": []
+      },
+      "source": "call obj%print_me()",
+      "parse_tree": [],
+      "semantics": [],
+      "hlfir_ops": [],
+      "fir_ops": [],
+      "llvm_instrs": [],
+      "metadata": {
+        "num_hlfir_ops": 0,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 0,
+        "fully_correlated": false
+      }
+    },
+    {
+      "construct": {
+        "kind": "print_statement",
+        "id": "234ab3032f501e88",
+        "line_range": [
+          24,
+          24
+        ],
+        "source_range": "source.f90:24:1-24:23",
+        "variables": [
+          "Base",
+          "print"
+        ],
+        "operators": [
+          "*"
+        ]
+      },
+      "source": "print *, \"Base\"",
+      "parse_tree": [],
+      "semantics": [],
+      "hlfir_ops": [],
+      "fir_ops": [],
+      "llvm_instrs": [],
+      "metadata": {
+        "num_hlfir_ops": 0,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 0,
+        "fully_correlated": false
+      }
+    },
+    {
+      "construct": {
+        "kind": "print_statement",
+        "id": "4710682fb3ebdbab",
+        "line_range": [
+          29,
+          29
+        ],
+        "source_range": "source.f90:29:1-29:24",
+        "variables": [
+          "Child",
+          "print"
+        ],
+        "operators": [
+          "*"
+        ]
+      },
+      "source": "print *, \"Child\"",
+      "parse_tree": [],
+      "semantics": [],
+      "hlfir_ops": [],
+      "fir_ops": [],
+      "llvm_instrs": [],
+      "metadata": {
+        "num_hlfir_ops": 0,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 0,
+        "fully_correlated": false
+      }
+    }
+  ]
+}

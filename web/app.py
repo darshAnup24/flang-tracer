@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 import sys
 import os
 import re
@@ -19,6 +19,7 @@ app = Flask(__name__, template_folder='templates')
 MAX_CODE_SIZE = 50 * 1024
 FORTRAN_KEYWORDS = {'program', 'subroutine', 'function', 'module', 'interface', 'type'}
 EXAMPLES_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'examples'))
+OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'output'))
 
 COMPILER_AVAILABLE = False
 try:
@@ -173,6 +174,25 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/output/<path:filename>')
+def serve_output(filename):
+    """Serve pre-generated HTML/JSON/TXT files from the output directory."""
+    return send_from_directory(OUTPUT_DIR, filename)
+
+
+@app.route('/api/output-files', methods=['GET'])
+def list_output_files():
+    """List all HTML files in the output directory."""
+    try:
+        files = sorted([
+            f for f in os.listdir(OUTPUT_DIR)
+            if f.endswith('.html')
+        ])
+        return jsonify({'files': files})
+    except OSError:
+        return jsonify({'files': []})
+
+
 @app.route('/api/trace', methods=['POST'])
 def trace():
     try:
@@ -184,7 +204,7 @@ def trace():
 
         valid, msg = validate_fortran_code(code)
         if not valid:
-            return jsonify({"nodes": []}), 400
+            return jsonify({"error": msg, "nodes": []}), 400
 
         if COMPILER_AVAILABLE:
             try:
@@ -234,6 +254,55 @@ def trace():
     except Exception as e:
         logger.error(f"Trace error: {e}", exc_info=True)
         return jsonify({"nodes": []}), 500
+
+
+def trace_file(filepath):
+    """Trace a single Fortran file and return normalized nodes."""
+    code = read_example_file(filepath)
+    if not code:
+        return [], {}
+    if COMPILER_AVAILABLE:
+        try:
+            engine = SemanticCorrelationEngine()
+            bundle = engine.trace_with_real_compiler(code)
+            bundle_dict = bundle.to_dict() if hasattr(bundle, 'to_dict') else (bundle if isinstance(bundle, dict) else {})
+            return normalize_nodes(bundle_dict.get('nodes', [])), bundle_dict.get('metadata', {}).get('correlation_stats', {})
+        except Exception:
+            pass
+    construct = extract_construct_type(code)
+    bundle = get_mock_bundle_for_construct(construct)
+    nodes = bundle.get('nodes', [])
+    if nodes:
+        code_lines = [l.strip() for l in code.split('\n') if l.strip() and not l.strip().startswith('!')]
+        nodes[0]['text'] = '\n'.join(code_lines[:3])
+    return normalize_nodes(nodes), {}
+
+
+@app.route('/api/trace-all', methods=['GET'])
+def trace_all():
+    """Trace all example files and return results as one bundle."""
+    files = list_example_files()
+    all_results = []
+    total_stats = {
+        'total_constructs': 0,
+        'total_files': len(files),
+        'stages': ['parse_tree', 'semantics', 'hlfir', 'fir', 'llvm'],
+    }
+    for name in files:
+        label = name.replace('.f90', '')
+        nodes, stats = trace_file(name)
+        all_results.append({
+            'label': label,
+            'file': name,
+            'nodes': nodes,
+            'stats': stats,
+        })
+        total_stats['total_constructs'] += len(nodes)
+    return jsonify({
+        'results': all_results,
+        'stats': total_stats,
+        'mode': 'real' if COMPILER_AVAILABLE else 'mock',
+    })
 
 
 @app.route('/api/examples', methods=['GET'])

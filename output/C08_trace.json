@@ -1,0 +1,208 @@
+{
+  "metadata": {
+    "correlation_stats": {
+      "total_constructs": 5,
+      "correlated_constructs": 0,
+      "correlation_rate": 0.0,
+      "avg_fir_ops_per_construct": 0.0
+    },
+    "num_constructs": 5
+  },
+  "nodes": [
+    {
+      "construct": {
+        "kind": "scalar_assignment",
+        "id": "60f278b9284612ac",
+        "line_range": [
+          7,
+          7
+        ],
+        "source_range": "source.f90:7:1-7:25",
+        "variables": [
+          "my_val",
+          "this_image"
+        ],
+        "operators": []
+      },
+      "source": "my_val = this_image()",
+      "parse_tree": [
+        {
+          "construct_kind": "AssignmentStmt",
+          "line_range": [
+            7,
+            7
+          ],
+          "text": "my_val=this_image()",
+          "source_range": "source.f90:7:1-7:25",
+          "num_children": 0
+        }
+      ],
+      "semantics": [],
+      "hlfir_ops": [],
+      "fir_ops": [],
+      "llvm_instrs": [],
+      "metadata": {
+        "num_hlfir_ops": 0,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 0,
+        "fully_correlated": false
+      }
+    },
+    {
+      "construct": {
+        "kind": "if_construct",
+        "id": "ee1faaface5bb647",
+        "line_range": [
+          13,
+          13
+        ],
+        "source_range": "source.f90:13:1-13:34",
+        "variables": [
+          "my_val",
+          "remote_val"
+        ],
+        "operators": []
+      },
+      "source": "remote_val = my_val[2]",
+      "parse_tree": [
+        {
+          "construct_kind": "IfConstruct",
+          "line_range": [
+            13,
+            13
+          ],
+          "text": "remote_val=my_val[2_8]",
+          "source_range": "source.f90:13:1-13:34",
+          "num_children": 0
+        },
+        {
+          "construct_kind": "AssignmentStmt",
+          "line_range": [
+            13,
+            13
+          ],
+          "text": "remote_val=my_val[2_8]",
+          "source_range": "source.f90:13:1-13:34",
+          "num_children": 0
+        }
+      ],
+      "semantics": [],
+      "hlfir_ops": [],
+      "fir_ops": [],
+      "llvm_instrs": [],
+      "metadata": {
+        "num_hlfir_ops": 0,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 0,
+        "fully_correlated": false
+      }
+    },
+    {
+      "construct": {
+        "kind": "array_assignment",
+        "id": "b846db7480d087d1",
+        "line_range": [
+          13,
+          13
+        ],
+        "source_range": "source.f90:13:1-13:34",
+        "variables": [
+          "my_val",
+          "remote_val"
+        ],
+        "operators": []
+      },
+      "source": "remote_val = my_val[2]",
+      "parse_tree": [
+        {
+          "construct_kind": "IfConstruct",
+          "line_range": [
+            13,
+            13
+          ],
+          "text": "remote_val=my_val[2_8]",
+          "source_range": "source.f90:13:1-13:34",
+          "num_children": 0
+        },
+        {
+          "construct_kind": "AssignmentStmt",
+          "line_range": [
+            13,
+            13
+          ],
+          "text": "remote_val=my_val[2_8]",
+          "source_range": "source.f90:13:1-13:34",
+          "num_children": 0
+        }
+      ],
+      "semantics": [],
+      "hlfir_ops": [],
+      "fir_ops": [],
+      "llvm_instrs": [],
+      "metadata": {
+        "num_hlfir_ops": 0,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 0,
+        "fully_correlated": false
+      }
+    },
+    {
+      "construct": {
+        "kind": "if_construct",
+        "id": "cd4dcbf712b0f632",
+        "line_range": [
+          11,
+          11
+        ],
+        "source_range": "source.f90:11:1-11:30",
+        "variables": [
+          "num_images"
+        ],
+        "operators": [
+          ">"
+        ]
+      },
+      "source": "if (num_images() > 1) then",
+      "parse_tree": [],
+      "semantics": [],
+      "hlfir_ops": [],
+      "fir_ops": [],
+      "llvm_instrs": [],
+      "metadata": {
+        "num_hlfir_ops": 0,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 0,
+        "fully_correlated": false
+      }
+    },
+    {
+      "construct": {
+        "kind": "if_construct",
+        "id": "1e54c029c9edbc45",
+        "line_range": [
+          12,
+          12
+        ],
+        "source_range": "source.f90:12:1-12:35",
+        "variables": [
+          "this_image"
+        ],
+        "operators": [
+          "=="
+        ]
+      },
+      "source": "if (this_image() == 1) then",
+      "parse_tree": [],
+      "semantics": [],
+      "hlfir_ops": [],
+      "fir_ops": [],
+      "llvm_instrs": [],
+      "metadata": {
+        "num_hlfir_ops": 0,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 0,
+        "fully_correlated": false
+      }
+    }
+  ]
+}

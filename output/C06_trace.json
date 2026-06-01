@@ -1,0 +1,541 @@
+{
+  "metadata": {
+    "correlation_stats": {
+      "total_constructs": 2,
+      "correlated_constructs": 0,
+      "correlation_rate": 0.0,
+      "avg_fir_ops_per_construct": 0.0
+    },
+    "num_constructs": 2
+  },
+  "nodes": [
+    {
+      "construct": {
+        "kind": "unknown",
+        "id": "01a34bcbf81bc272",
+        "line_range": [
+          11,
+          11
+        ],
+        "source_range": "source.f90:11:1-11:21",
+        "variables": [
+          "data",
+          "my_node"
+        ],
+        "operators": []
+      },
+      "source": "my_node%data = 42",
+      "parse_tree": [
+        {
+          "construct_kind": "AllocateStmt",
+          "line_range": [
+            11,
+            11
+          ],
+          "text": "my_node%data=42_4",
+          "source_range": "source.f90:11:1-11:21",
+          "num_children": 0
+        },
+        {
+          "construct_kind": "AssignmentStmt",
+          "line_range": [
+            11,
+            11
+          ],
+          "text": "my_node%data=42_4",
+          "source_range": "source.f90:11:1-11:21",
+          "num_children": 0
+        }
+      ],
+      "semantics": [],
+      "hlfir_ops": [
+        {
+          "op_name": "fir.defaultkind",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "module attributes {dlti.dl_spec = #dlti.dl_spec<!llvm.ptr<270> = dense<32> : vector<4xi64>, !llvm.ptr<271> = dense<32> : vector<4xi64>, !llvm.ptr<272> = dense<64> : vector<4xi64>, i64 = dense<64> : vector<2xi64>, i128 = dense<128> : vector<2xi64>, f80 = dense<128> : vector<2xi64>, !llvm.ptr = dense<64> : vector<4xi64>, i1 = dense<8> : vector<2xi64>, i8 = dense<8> : vector<2xi64>, i16 = dense<16> : vector<2xi64>, i32 = dense<32> : vector<2xi64>, f16 = dense<16> : vector<2xi64>, f64 = dense<64> : vector<2xi64>, f128 = dense<128> : vector<2xi64>, \"dlti.endianness\" = \"little\", \"dlti.mangling_mode\" = \"e\", \"dlti.legal_int_widths\" = array<i32: 8, 16, 32, 64>, \"dlti.stack_alignment\" = 128 : i64>, fir.defaultkind = \"a1c4d8i4l4r4\", fir.kindmap = \"\", llvm.data_layout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\", llvm.ident = \"flang version 21.1.8\", llvm.target_triple = \"x86_64-redhat-linux-gnu\"} {"
+        },
+        {
+          "op_name": "fir.address_of",
+          "operands": [],
+          "results": [
+            "%1"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%1 = fir.address_of(@_QFE.n.data) : !fir.ref<!fir.char<1,4>>"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%1",
+            "%c4"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%2:2 = hlfir.declare %1 typeparams %c4 {fortran_attrs = #fir.var_attrs<target>, uniq_name = \"_QFE.n.data\"} : (!fir.ref<!fir.char<1,4>>, index) -> (!fir.ref<!fir.char<1,4>>, !fir.ref<!fir.char<1,4>>)"
+        },
+        {
+          "op_name": "fir.address_of",
+          "operands": [],
+          "results": [
+            "%5"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%5 = fir.address_of(@_QFEmy_node) : !fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%5"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%6:2 = hlfir.declare %5 {uniq_name = \"_QFEmy_node\"} : (!fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>) -> (!fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>, !fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>)"
+        },
+        {
+          "op_name": "hlfir.designate",
+          "operands": [
+            "%6"
+          ],
+          "results": [
+            "%12"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%12 = hlfir.designate %6#0{\"data\"}   {fortran_attrs = #fir.var_attrs<allocatable>} : (!fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>) -> !fir.ref<!fir.box<!fir.heap<!fir.array<?xi32>>>>"
+        },
+        {
+          "op_name": "fir.allocmem",
+          "operands": [
+            "%15"
+          ],
+          "results": [
+            "%16"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%16 = fir.allocmem !fir.array<?xi32>, %15 {fir.must_be_heap = true, uniq_name = \"_QFEdata.alloc\"}"
+        },
+        {
+          "op_name": "hlfir.designate",
+          "operands": [
+            "%6"
+          ],
+          "results": [
+            "%19"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%19 = hlfir.designate %6#0{\"data\"}   {fortran_attrs = #fir.var_attrs<allocatable>} : (!fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>) -> !fir.ref<!fir.box<!fir.heap<!fir.array<?xi32>>>>"
+        },
+        {
+          "op_name": "fir.global",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.global linkonce_odr @_QFE.n.data constant target : !fir.char<1,4> {"
+        },
+        {
+          "op_name": "fir.string_lit",
+          "operands": [],
+          "results": [
+            "%0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%0 = fir.string_lit \"data\"(4) : !fir.char<1,4>"
+        },
+        {
+          "op_name": "fir.global",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.global internal @_QFEmy_node : !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}> {"
+        },
+        {
+          "op_name": "fir.undefined",
+          "operands": [],
+          "results": [
+            "%0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%0 = fir.undefined !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>"
+        },
+        {
+          "op_name": "fir.field_index",
+          "operands": [],
+          "results": [
+            "%4"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%4 = fir.field_index data, !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>"
+        },
+        {
+          "op_name": "fir.insert_value",
+          "operands": [
+            "%0",
+            "%3"
+          ],
+          "results": [
+            "%5"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%5 = fir.insert_value %0, %3, [\"data\", !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>] : (!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>, !fir.box<!fir.heap<!fir.array<?xi32>>>) -> !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>"
+        },
+        {
+          "op_name": "fir.has_value",
+          "operands": [
+            "%5"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.has_value %5 : !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>"
+        },
+        {
+          "op_name": "fir.address_of",
+          "operands": [],
+          "results": [
+            "%3"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%3 = fir.address_of(@_QFE.n.data) : !fir.ref<!fir.char<1,4>>"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%3",
+            "%c4"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%4:2 = hlfir.declare %3 typeparams %c4 {fortran_attrs = #fir.var_attrs<target>, uniq_name = \"_QFE.n.data\"} : (!fir.ref<!fir.char<1,4>>, index) -> (!fir.ref<!fir.char<1,4>>, !fir.ref<!fir.char<1,4>>)"
+        },
+        {
+          "op_name": "fir.type_info",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.type_info @_QFTnode nofinal : !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>"
+        }
+      ],
+      "fir_ops": [],
+      "llvm_instrs": [
+        {
+          "line": "call void @llvm.memcpy.p0.p0.i32(ptr @_QFEmy_node, ptr %3, i32 48, i1 false)",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "call void @_FortranAAssign(ptr @_QFEmy_node, ptr %1, ptr @_QQclX2F746D702F6674726163655F353962366A3675702F696E7075742E66393000, i32 11)",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        }
+      ],
+      "metadata": {
+        "num_hlfir_ops": 18,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 2,
+        "fully_correlated": false
+      }
+    },
+    {
+      "construct": {
+        "kind": "scalar_assignment",
+        "id": "0e421aab2e7fccf7",
+        "line_range": [
+          11,
+          11
+        ],
+        "source_range": "source.f90:11:1-11:21",
+        "variables": [
+          "data",
+          "my_node"
+        ],
+        "operators": []
+      },
+      "source": "my_node%data = 42",
+      "parse_tree": [
+        {
+          "construct_kind": "AllocateStmt",
+          "line_range": [
+            11,
+            11
+          ],
+          "text": "my_node%data=42_4",
+          "source_range": "source.f90:11:1-11:21",
+          "num_children": 0
+        },
+        {
+          "construct_kind": "AssignmentStmt",
+          "line_range": [
+            11,
+            11
+          ],
+          "text": "my_node%data=42_4",
+          "source_range": "source.f90:11:1-11:21",
+          "num_children": 0
+        }
+      ],
+      "semantics": [],
+      "hlfir_ops": [
+        {
+          "op_name": "fir.defaultkind",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "module attributes {dlti.dl_spec = #dlti.dl_spec<!llvm.ptr<270> = dense<32> : vector<4xi64>, !llvm.ptr<271> = dense<32> : vector<4xi64>, !llvm.ptr<272> = dense<64> : vector<4xi64>, i64 = dense<64> : vector<2xi64>, i128 = dense<128> : vector<2xi64>, f80 = dense<128> : vector<2xi64>, !llvm.ptr = dense<64> : vector<4xi64>, i1 = dense<8> : vector<2xi64>, i8 = dense<8> : vector<2xi64>, i16 = dense<16> : vector<2xi64>, i32 = dense<32> : vector<2xi64>, f16 = dense<16> : vector<2xi64>, f64 = dense<64> : vector<2xi64>, f128 = dense<128> : vector<2xi64>, \"dlti.endianness\" = \"little\", \"dlti.mangling_mode\" = \"e\", \"dlti.legal_int_widths\" = array<i32: 8, 16, 32, 64>, \"dlti.stack_alignment\" = 128 : i64>, fir.defaultkind = \"a1c4d8i4l4r4\", fir.kindmap = \"\", llvm.data_layout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\", llvm.ident = \"flang version 21.1.8\", llvm.target_triple = \"x86_64-redhat-linux-gnu\"} {"
+        },
+        {
+          "op_name": "fir.address_of",
+          "operands": [],
+          "results": [
+            "%1"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%1 = fir.address_of(@_QFE.n.data) : !fir.ref<!fir.char<1,4>>"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%1",
+            "%c4"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%2:2 = hlfir.declare %1 typeparams %c4 {fortran_attrs = #fir.var_attrs<target>, uniq_name = \"_QFE.n.data\"} : (!fir.ref<!fir.char<1,4>>, index) -> (!fir.ref<!fir.char<1,4>>, !fir.ref<!fir.char<1,4>>)"
+        },
+        {
+          "op_name": "fir.address_of",
+          "operands": [],
+          "results": [
+            "%5"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%5 = fir.address_of(@_QFEmy_node) : !fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%5"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%6:2 = hlfir.declare %5 {uniq_name = \"_QFEmy_node\"} : (!fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>) -> (!fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>, !fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>)"
+        },
+        {
+          "op_name": "hlfir.designate",
+          "operands": [
+            "%6"
+          ],
+          "results": [
+            "%12"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%12 = hlfir.designate %6#0{\"data\"}   {fortran_attrs = #fir.var_attrs<allocatable>} : (!fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>) -> !fir.ref<!fir.box<!fir.heap<!fir.array<?xi32>>>>"
+        },
+        {
+          "op_name": "fir.allocmem",
+          "operands": [
+            "%15"
+          ],
+          "results": [
+            "%16"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%16 = fir.allocmem !fir.array<?xi32>, %15 {fir.must_be_heap = true, uniq_name = \"_QFEdata.alloc\"}"
+        },
+        {
+          "op_name": "hlfir.designate",
+          "operands": [
+            "%6"
+          ],
+          "results": [
+            "%19"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%19 = hlfir.designate %6#0{\"data\"}   {fortran_attrs = #fir.var_attrs<allocatable>} : (!fir.ref<!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>>) -> !fir.ref<!fir.box<!fir.heap<!fir.array<?xi32>>>>"
+        },
+        {
+          "op_name": "fir.global",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.global linkonce_odr @_QFE.n.data constant target : !fir.char<1,4> {"
+        },
+        {
+          "op_name": "fir.string_lit",
+          "operands": [],
+          "results": [
+            "%0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%0 = fir.string_lit \"data\"(4) : !fir.char<1,4>"
+        },
+        {
+          "op_name": "fir.global",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.global internal @_QFEmy_node : !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}> {"
+        },
+        {
+          "op_name": "fir.undefined",
+          "operands": [],
+          "results": [
+            "%0"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%0 = fir.undefined !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>"
+        },
+        {
+          "op_name": "fir.field_index",
+          "operands": [],
+          "results": [
+            "%4"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%4 = fir.field_index data, !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>"
+        },
+        {
+          "op_name": "fir.insert_value",
+          "operands": [
+            "%0",
+            "%3"
+          ],
+          "results": [
+            "%5"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%5 = fir.insert_value %0, %3, [\"data\", !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>] : (!fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>, !fir.box<!fir.heap<!fir.array<?xi32>>>) -> !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>"
+        },
+        {
+          "op_name": "fir.has_value",
+          "operands": [
+            "%5"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.has_value %5 : !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>"
+        },
+        {
+          "op_name": "fir.address_of",
+          "operands": [],
+          "results": [
+            "%3"
+          ],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%3 = fir.address_of(@_QFE.n.data) : !fir.ref<!fir.char<1,4>>"
+        },
+        {
+          "op_name": "hlfir.declare",
+          "operands": [
+            "%3",
+            "%c4"
+          ],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "%4:2 = hlfir.declare %3 typeparams %c4 {fortran_attrs = #fir.var_attrs<target>, uniq_name = \"_QFE.n.data\"} : (!fir.ref<!fir.char<1,4>>, index) -> (!fir.ref<!fir.char<1,4>>, !fir.ref<!fir.char<1,4>>)"
+        },
+        {
+          "op_name": "fir.type_info",
+          "operands": [],
+          "results": [],
+          "source_range": null,
+          "src_line": null,
+          "debug_loc": null,
+          "raw": "fir.type_info @_QFTnode nofinal : !fir.type<_QFTnode{data:!fir.box<!fir.heap<!fir.array<?xi32>>>}>"
+        }
+      ],
+      "fir_ops": [],
+      "llvm_instrs": [
+        {
+          "line": "call void @llvm.memcpy.p0.p0.i32(ptr @_QFEmy_node, ptr %3, i32 48, i1 false)",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        },
+        {
+          "line": "call void @_FortranAAssign(ptr @_QFEmy_node, ptr %1, ptr @_QQclX2F746D702F6674726163655F353962366A3675702F696E7075742E66393000, i32 11)",
+          "src_line": null,
+          "src_col": null,
+          "debug_loc": null
+        }
+      ],
+      "metadata": {
+        "num_hlfir_ops": 18,
+        "num_fir_ops": 0,
+        "num_llvm_instrs": 2,
+        "fully_correlated": false
+      }
+    }
+  ]
+}

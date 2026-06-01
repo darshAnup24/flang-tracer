@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flang Multi-Stage Semantic Tracer</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #1e1e1e;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #4fc3f7;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #444;
+            padding-bottom: 15px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            color: #4fc3f7;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .trace-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .trace-row {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .construct-header {
+            background: #2d2d30;
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            border-bottom: 1px solid #3e3e42;
+            flex-wrap: wrap;
+        }
+
+        .construct-kind {
+            background: #0e639c;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .construct-id {
+            color: #ce9178;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        .correlation-status {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .correlation-status.correlated {
+            background: #2d7d2d;
+            color: #6ba583;
+        }
+
+        .correlation-status.partial {
+            background: #7d5d2d;
+            color: #b5a683;
+        }
+
+        .op-counts {
+            color: #888;
+            font-size: 11px;
+            margin-left: auto;
+        }
+
+        .stages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 0;
+        }
+
+        .stage {
+            border-right: 1px solid #3e3e42;
+            border-bottom: 1px solid #3e3e42;
+            padding: 15px;
+            background: #1e1e1e;
+            min-height: 200px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .stage:last-child {
+            border-right: none;
+        }
+
+        .stage-label {
+            color: #9cdcfe;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .stage-content {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            color: #d4d4d4;
+        }
+
+        .source {
+            grid-column: 1 / -1;
+        }
+
+        .source .stage-content {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 3px;
+            border-left: 3px solid #0e639c;
+        }
+
+        .ast-node {
+            display: flex;
+            gap: 10px;
+            padding: 6px;
+            background: #2d2d30;
+            margin-bottom: 4px;
+            border-radius: 3px;
+            border-left: 2px solid #4fc3f7;
+        }
+
+        .node-kind {
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+
+        .node-range {
+            color: #888;
+            font-size: 11px;
+        }
+
+        .symbol-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .symbol-table thead {
+            background: #2d2d30;
+            border-bottom: 2px solid #0e639c;
+        }
+
+        .symbol-table th {
+            padding: 8px;
+            text-align: left;
+            color: #9cdcfe;
+            font-weight: bold;
+        }
+
+        .symbol-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .sym-name {
+            color: #ce9178;
+            font-weight: bold;
+        }
+
+        .sym-kind {
+            color: #4fc3f7;
+            font-size: 10px;
+        }
+
+        .sym-type {
+            color: #b5cea8;
+        }
+
+        .sym-attrs {
+            color: #888;
+            font-size: 10px;
+        }
+
+        .ir-op {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 6px;
+            background: #2d2d30;
+            margin-bottom: 4px;
+            border-radius: 2px;
+            border-left: 2px solid #646695;
+        }
+
+        .hlfir-op {
+            border-left-color: #b8860b;
+        }
+
+        .fir-op {
+            border-left-color: #d16969;
+        }
+
+        .llvm-instr {
+            display: flex;
+            gap: 10px;
+            padding: 4px;
+            margin-bottom: 4px;
+            border-left: 2px solid #999;
+        }
+
+        .op-result {
+            color: #ce9178;
+        }
+
+        .op-name {
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+
+        .hlfir-name {
+            color: #b8860b;
+        }
+
+        .fir-name {
+            color: #d16969;
+        }
+
+        .op-args {
+            color: #d4d4d4;
+        }
+
+        .op-loc, .debug-loc {
+            color: #888;
+            font-size: 10px;
+        }
+
+        .llvm-op {
+            color: #ce9178;
+            font-weight: bold;
+        }
+
+        .llvm-line {
+            color: #d4d4d4;
+            padding: 2px 6px;
+            background: #2d2d30;
+            border-radius: 2px;
+        }
+
+        .fir-construct {
+            margin-bottom: 8px;
+            border: 1px solid #3e3e42;
+            border-radius: 3px;
+            padding: 6px;
+            background: #2d2d30;
+        }
+
+        .op-count {
+            color: #9cdcfe;
+            font-size: 10px;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        @media (max-width: 1400px) {
+            .stages-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stages-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .construct-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .op-counts {
+                margin-left: 0;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>Flang Multi-Stage Semantic Tracer</h1>
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">Total Constructs</div>
+                <div class="stat-value">3</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Fully Correlated</div>
+                <div class="stat-value">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Correlation Rate</div>
+                <div class="stat-value">100.0%</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Avg FIR Ops/Construct</div>
+                <div class="stat-value">3.3</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="trace-container">
+        
+            <div class="trace-row" id="construct-0">
+                <div class="construct-header">
+                    <span class="construct-kind">scalar_assignment</span>
+                    <span class="construct-id">ba4a3fa5b2080041</span>
+                    <span class="correlation-status correlated">
+                        ✓ Fully correlated
+                    </span>
+                    <span class="op-counts">
+                        HLFIR:11 
+                        FIR:1 
+                        LLVM:8
+                    </span>
+                </div>
+
+                <div class="stages-grid">
+                    <div class="stage source">
+                        <div class="stage-label">Source Code</div>
+                        <pre class="stage-content">B = 10</pre>
+                    </div>
+
+                    <div class="stage parse-tree">
+                        <div class="stage-label">Parse Tree (AST)</div>
+                        <div class="stage-content parse-tree">
+                <div class="ast-node">
+                    <span class="node-kind">AssignmentStmt</span>
+                    <span class="node-range">:7-7</span>
+                </div>
+                </div>
+                    </div>
+
+                    <div class="stage semantics">
+                        <div class="stage-label">Semantics (Symbols & Types)</div>
+                        <div class="stage-content"><p>[No symbols found]</p></div>
+                    </div>
+
+                    <div class="stage hlfir">
+                        <div class="stage-label">HLFIR (High-Level IR)</div>
+                        <div class="stage-content hlfir"><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.defaultkind</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">func.func</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%4</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.address_of</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.declare</span><span class="op-args">(%4, %5)</span></div><div class="ir-op hlfir-op"><span class="op-result">%7</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.alloca</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%12</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.alloca</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.global</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.zero_bits</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.global</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.zero_bits</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.zero_bits</span><span class="op-args">()</span></div></div>
+                    </div>
+
+                    <div class="stage fir">
+                        <div class="stage-label">FIR (Lowered IR)</div>
+                        <div class="stage-content fir"><div class="fir-construct" data-construct="unknown"><div class="ir-op fir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name fir-name">fir.store</span><span class="op-args">(%13, %0)</span></div></div></div>
+                    </div>
+
+                    <div class="stage llvm">
+                        <div class="stage-label">LLVM IR (Machine IR)</div>
+                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QFEb, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 100, i64 4]] }, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %11, label %12, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%16 = sub nsw i64 %15, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = getelementptr i32, ptr @_QFEb, i64 %19</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%23 = sub nsw i64 %15, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%29 = sub i64 %10, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %8</code></div></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="trace-row" id="construct-1">
+                <div class="construct-header">
+                    <span class="construct-kind">do_concurrent</span>
+                    <span class="construct-id">93632d0ef009cbf1</span>
+                    <span class="correlation-status correlated">
+                        ✓ Fully correlated
+                    </span>
+                    <span class="op-counts">
+                        HLFIR:51 
+                        FIR:2 
+                        LLVM:40
+                    </span>
+                </div>
+
+                <div class="stages-grid">
+                    <div class="stage source">
+                        <div class="stage-label">Source Code</div>
+                        <pre class="stage-content">DO CONCURRENT (i = 1:100:2)</pre>
+                    </div>
+
+                    <div class="stage parse-tree">
+                        <div class="stage-label">Parse Tree (AST)</div>
+                        <div class="stage-content"><p>[No parse tree constructs found]</p></div>
+                    </div>
+
+                    <div class="stage semantics">
+                        <div class="stage-label">Semantics (Symbols & Types)</div>
+                        <div class="stage-content"><p>[No symbols found]</p></div>
+                    </div>
+
+                    <div class="stage hlfir">
+                        <div class="stage-label">HLFIR (High-Level IR)</div>
+                        <div class="stage-content hlfir"><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.defaultkind</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">func.func</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.dummy_scope</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%1</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.address_of</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%c100</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%2</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.shape</span><span class="op-args">(%c100)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.declare</span><span class="op-args">(%1, %2)</span></div><div class="ir-op hlfir-op"><span class="op-result">%4</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.address_of</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%c100_0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%5</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.shape</span><span class="op-args">(%c100_0)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.declare</span><span class="op-args">(%4, %5)</span></div><div class="ir-op hlfir-op"><span class="op-result">%7</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.alloca</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.declare</span><span class="op-args">(%7)</span></div><div class="ir-op hlfir-op"><span class="op-result">%c10_i32</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.assign</span><span class="op-args">(%c10_i32, %6)</span></div><div class="ir-op hlfir-op"><span class="op-result">%c1_i32</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%9</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%c1_i32)</span></div><div class="ir-op hlfir-op"><span class="op-result">%c100_i32</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%10</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%c100_i32)</span></div><div class="ir-op hlfir-op"><span class="op-result">%c2_i32</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%11</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%c2_i32)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.do_concurrent</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%12</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.alloca</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.declare</span><span class="op-args">(%12)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.do_concurrent</span><span class="op-args">(%arg0, %9, %10, %11)</span></div><div class="ir-op hlfir-op"><span class="op-result">%14</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%arg0)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.store</span><span class="op-args">(%14, %13)</span></div><div class="ir-op hlfir-op"><span class="op-result">%c2_i32_1</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%15</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.load</span><span class="op-args">(%13)</span></div><div class="ir-op hlfir-op"><span class="op-result">%16</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%15)</span></div><div class="ir-op hlfir-op"><span class="op-result">%17</span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.designate</span><span class="op-args">(%6, %16)</span></div><div class="ir-op hlfir-op"><span class="op-result">%18</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.load</span><span class="op-args">(%17)</span></div><div class="ir-op hlfir-op"><span class="op-result">%19</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.muli</span><span class="op-args">(%c2_i32_1, %18)</span></div><div class="ir-op hlfir-op"><span class="op-result">%20</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.load</span><span class="op-args">(%13)</span></div><div class="ir-op hlfir-op"><span class="op-result">%21</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%20)</span></div><div class="ir-op hlfir-op"><span class="op-result">%22</span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.designate</span><span class="op-args">(%3, %21)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.assign</span><span class="op-args">(%19, %22)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.global</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.zero_bits</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.has_value</span><span class="op-args">(%0)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.global</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.zero_bits</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.has_value</span><span class="op-args">(%0)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">func.func</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">func.func</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">func.func</span><span class="op-args">(%arg0, %arg1, %arg2)</span></div><div class="ir-op hlfir-op"><span class="op-result">%0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.zero_bits</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.call</span><span class="op-args">(%arg0, %arg1, %arg2, %0)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.call</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.call</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%c0_i32</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div></div>
+                    </div>
+
+                    <div class="stage fir">
+                        <div class="stage-label">FIR (Lowered IR)</div>
+                        <div class="stage-content fir"><div class="fir-construct" data-construct="unknown"><div class="op-count">2 FIR operations</div><div class="ir-op fir-op"><span class="op-result">%26</span> <span class="op-name">=</span> <span class="op-name fir-name">fir.array_coor</span><span class="op-args">(%7, %6, %25)</span></div><div class="ir-op fir-op"><span class="op-result">%31</span> <span class="op-name">=</span> <span class="op-name fir-name">fir.array_coor</span><span class="op-args">(%4, %3, %30)</span></div></div></div>
+                    </div>
+
+                    <div class="stage llvm">
+                        <div class="stage-label">LLVM IR (Machine IR)</div>
+                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8 }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca i32, i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca i32, i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = alloca i32, i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 10, ptr %3, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%7 = insertvalue { ptr, i64, i32, i8, i8, i8, i8 } { ptr undef, i64 4, i32 20240719, i8 0, i8 9, i8 0, i8 0 }, ptr %3, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8 } %7, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QFEb, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 100, i64 4]] }, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F68397071347677622F696E7075742E66393000, i32 7)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%9 = phi i64 [ %28, %12 ], [ 1, %0 ]</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%10 = phi i64 [ %29, %12 ], [ 50, %0 ]</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%11 = icmp sgt i64 %10, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %11, label %12, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%13 = trunc i64 %9 to i32</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %13, ptr %6, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%14 = load i32, ptr %6, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = sext i32 %14 to i64</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%16 = sub nsw i64 %15, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = mul nsw i64 %16, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%18 = mul nsw i64 %17, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%19 = add nsw i64 %18, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = getelementptr i32, ptr @_QFEb, i64 %19</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%21 = load i32, ptr %20, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%22 = mul i32 %21, 2</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%23 = sub nsw i64 %15, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%24 = mul nsw i64 %23, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = mul nsw i64 %24, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%26 = add nsw i64 %25, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%27 = getelementptr i32, ptr @_QFEa, i64 %26</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %22, ptr %27, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %9, 2</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%29 = sub i64 %10, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">ret void</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">ret i32 0</code></div></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="trace-row" id="construct-2">
+                <div class="construct-header">
+                    <span class="construct-kind">scalar_assignment</span>
+                    <span class="construct-id">81a6c8d1f263cbfe</span>
+                    <span class="correlation-status correlated">
+                        ✓ Fully correlated
+                    </span>
+                    <span class="op-counts">
+                        HLFIR:51 
+                        FIR:7 
+                        LLVM:42
+                    </span>
+                </div>
+
+                <div class="stages-grid">
+                    <div class="stage source">
+                        <div class="stage-label">Source Code</div>
+                        <pre class="stage-content">A(i) = B(i) * 2</pre>
+                    </div>
+
+                    <div class="stage parse-tree">
+                        <div class="stage-label">Parse Tree (AST)</div>
+                        <div class="stage-content"><p>[No parse tree constructs found]</p></div>
+                    </div>
+
+                    <div class="stage semantics">
+                        <div class="stage-label">Semantics (Symbols & Types)</div>
+                        <div class="stage-content"><p>[No symbols found]</p></div>
+                    </div>
+
+                    <div class="stage hlfir">
+                        <div class="stage-label">HLFIR (High-Level IR)</div>
+                        <div class="stage-content hlfir"><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.defaultkind</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">func.func</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.dummy_scope</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%1</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.address_of</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%c100</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%2</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.shape</span><span class="op-args">(%c100)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.declare</span><span class="op-args">(%1, %2)</span></div><div class="ir-op hlfir-op"><span class="op-result">%4</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.address_of</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%c100_0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%5</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.shape</span><span class="op-args">(%c100_0)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.declare</span><span class="op-args">(%4, %5)</span></div><div class="ir-op hlfir-op"><span class="op-result">%7</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.alloca</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.declare</span><span class="op-args">(%7)</span></div><div class="ir-op hlfir-op"><span class="op-result">%c10_i32</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.assign</span><span class="op-args">(%c10_i32, %6)</span></div><div class="ir-op hlfir-op"><span class="op-result">%c1_i32</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%9</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%c1_i32)</span></div><div class="ir-op hlfir-op"><span class="op-result">%c100_i32</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%10</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%c100_i32)</span></div><div class="ir-op hlfir-op"><span class="op-result">%c2_i32</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%11</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%c2_i32)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.do_concurrent</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%12</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.alloca</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.declare</span><span class="op-args">(%12)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.do_concurrent</span><span class="op-args">(%arg0, %9, %10, %11)</span></div><div class="ir-op hlfir-op"><span class="op-result">%14</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%arg0)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.store</span><span class="op-args">(%14, %13)</span></div><div class="ir-op hlfir-op"><span class="op-result">%c2_i32_1</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%15</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.load</span><span class="op-args">(%13)</span></div><div class="ir-op hlfir-op"><span class="op-result">%16</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%15)</span></div><div class="ir-op hlfir-op"><span class="op-result">%17</span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.designate</span><span class="op-args">(%6, %16)</span></div><div class="ir-op hlfir-op"><span class="op-result">%18</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.load</span><span class="op-args">(%17)</span></div><div class="ir-op hlfir-op"><span class="op-result">%19</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.muli</span><span class="op-args">(%c2_i32_1, %18)</span></div><div class="ir-op hlfir-op"><span class="op-result">%20</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.load</span><span class="op-args">(%13)</span></div><div class="ir-op hlfir-op"><span class="op-result">%21</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.convert</span><span class="op-args">(%20)</span></div><div class="ir-op hlfir-op"><span class="op-result">%22</span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.designate</span><span class="op-args">(%3, %21)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">hlfir.assign</span><span class="op-args">(%19, %22)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.global</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.zero_bits</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.has_value</span><span class="op-args">(%0)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.global</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.zero_bits</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.has_value</span><span class="op-args">(%0)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">func.func</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">func.func</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">func.func</span><span class="op-args">(%arg0, %arg1, %arg2)</span></div><div class="ir-op hlfir-op"><span class="op-result">%0</span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.zero_bits</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.call</span><span class="op-args">(%arg0, %arg1, %arg2, %0)</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.call</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name hlfir-name">fir.call</span><span class="op-args">()</span></div><div class="ir-op hlfir-op"><span class="op-result">%c0_i32</span> <span class="op-name">=</span> <span class="op-name hlfir-name">arith.constant</span><span class="op-args">()</span></div></div>
+                    </div>
+
+                    <div class="stage fir">
+                        <div class="stage-label">FIR (Lowered IR)</div>
+                        <div class="stage-content fir"><div class="fir-construct" data-construct="unknown"><div class="op-count">7 FIR operations</div><div class="ir-op fir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name fir-name">fir.store</span><span class="op-args">(%c10_i32, %10)</span></div><div class="ir-op fir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name fir-name">fir.store</span><span class="op-args">(%13, %0)</span></div><div class="ir-op fir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name fir-name">fir.store</span><span class="op-args">(%23, %22)</span></div><div class="ir-op fir-op"><span class="op-result">%24</span> <span class="op-name">=</span> <span class="op-name fir-name">fir.load</span><span class="op-args">(%22)</span></div><div class="ir-op fir-op"><span class="op-result">%27</span> <span class="op-name">=</span> <span class="op-name fir-name">fir.load</span><span class="op-args">(%26)</span></div><div class="ir-op fir-op"><span class="op-result">%29</span> <span class="op-name">=</span> <span class="op-name fir-name">fir.load</span><span class="op-args">(%22)</span></div><div class="ir-op fir-op"><span class="op-result"></span> <span class="op-name">=</span> <span class="op-name fir-name">fir.store</span><span class="op-args">(%28, %31)</span></div></div></div>
+                    </div>
+
+                    <div class="stage llvm">
+                        <div class="stage-label">LLVM IR (Machine IR)</div>
+                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8 }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca i32, i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca i32, i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = alloca i32, i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 10, ptr %3, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%7 = insertvalue { ptr, i64, i32, i8, i8, i8, i8 } { ptr undef, i64 4, i32 20240719, i8 0, i8 9, i8 0, i8 0 }, ptr %3, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8 } %7, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QFEb, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 100, i64 4]] }, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F68397071347677622F696E7075742E66393000, i32 7)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%9 = phi i64 [ %28, %12 ], [ 1, %0 ]</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%10 = phi i64 [ %29, %12 ], [ 50, %0 ]</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%11 = icmp sgt i64 %10, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %11, label %12, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%13 = trunc i64 %9 to i32</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %13, ptr %6, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%14 = load i32, ptr %6, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = sext i32 %14 to i64</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%16 = sub nsw i64 %15, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = mul nsw i64 %16, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%18 = mul nsw i64 %17, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%19 = add nsw i64 %18, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = getelementptr i32, ptr @_QFEb, i64 %19</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%21 = load i32, ptr %20, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%22 = mul i32 %21, 2</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%23 = sub nsw i64 %15, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%24 = mul nsw i64 %23, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = mul nsw i64 %24, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%26 = add nsw i64 %25, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%27 = getelementptr i32, ptr @_QFEa, i64 %26</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %22, ptr %27, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %9, 2</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%29 = sub i64 %10, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">ret void</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">ret i32 0</code></div></div>
+                    </div>
+                </div>
+            </div>
+            
+    </div>
+
+</body>
+
+</html>
