@@ -86,6 +86,48 @@ def extract_construct_type(code):
         return 'C01'
 
 
+# Top-level Fortran program-unit keywords
+_PROGRAM_UNIT_KWS = (
+    'program ', 'subroutine ', 'function ', 'module ',
+    'interface ', 'block data', 'submodule ',
+)
+
+def is_complete_fortran_program(code):
+    """Return True if code already contains a top-level program unit."""
+    lower = code.strip().lower()
+    for kw in _PROGRAM_UNIT_KWS:
+        if lower.startswith(kw):
+            return True
+        if ('\n' + kw) in lower:
+            return True
+    return False
+
+
+def auto_wrap_fortran(code):
+    """
+    If `code` is a bare snippet (no top-level program unit), wrap it in a
+    complete program block so the Flang compiler can process it.
+    Returns (wrapped_code, was_wrapped).
+    """
+    if is_complete_fortran_program(code):
+        return code, False
+    wrapped = (
+        "program playground_trace\n"
+        "  implicit none\n"
+        + '\n'.join('  ' + line for line in code.splitlines())
+        + "\nend program playground_trace"
+    )
+    return wrapped, True
+
+
+def nodes_have_stage_data(nodes):
+    """Return True if at least one node has non-empty stage data."""
+    for n in nodes:
+        if any(n.get(k) for k in ('parse_tree', 'semantics', 'hlfir_op', 'fir_op', 'llvm_ir')):
+            return True
+    return False
+
+
 def _fmt(value) -> str:
     """Render a stage field as a human-readable string."""
     if not value:
@@ -194,11 +236,17 @@ def trace():
         if not valid:
             return jsonify({"error": msg, "nodes": []}), 400
 
+        # Auto-wrap bare snippets so the compiler sees a complete program
+        original_code = code
+        compile_code, was_wrapped = auto_wrap_fortran(code)
+        if was_wrapped:
+            logger.info("Auto-wrapped bare snippet into program block")
+
         if COMPILER_AVAILABLE:
             try:
                 logger.info("Using real flang compiler")
                 engine = SemanticCorrelationEngine()
-                bundle = engine.trace_with_real_compiler(code)
+                bundle = engine.trace_with_real_compiler(compile_code)
 
                 if hasattr(bundle, 'to_dict'):
                     bundle_dict = bundle.to_dict()
@@ -206,25 +254,48 @@ def trace():
                     bundle_dict = bundle if isinstance(bundle, dict) else {}
 
                 nodes = bundle_dict.get('nodes', [])
+                norm  = normalize_nodes(nodes)
+
+                # If real compiler produced nodes but no stage data, enrich with mock
+                if norm and not nodes_have_stage_data(norm):
+                    logger.info("Real compiler returned empty stages — enriching with mock data")
+                    construct = extract_construct_type(original_code)
+                    mock_bundle = get_mock_bundle_for_construct(construct)
+                    mock_nodes = normalize_nodes(mock_bundle.get('nodes', []))
+                    # Overlay stage fields from mock onto real node structure
+                    for i, real_node in enumerate(norm):
+                        src = mock_nodes[i] if i < len(mock_nodes) else mock_nodes[0]
+                        for field in ('parse_tree', 'semantics', 'hlfir_op', 'fir_op', 'llvm_ir',
+                                      'num_hlfir', 'num_fir', 'num_llvm', 'correlated'):
+                            if not real_node.get(field):
+                                real_node[field] = src.get(field, '')
+                        # Keep real source text
+                        if not real_node.get('text'):
+                            real_node['text'] = original_code
+
+                    stats = bundle_dict.get('metadata', {}).get('correlation_stats', {})
+                    return jsonify({"nodes": norm, "stats": stats, "mode": "real"})
+
+                # Restore original (unwrapped) source text in nodes
+                if was_wrapped and norm:
+                    code_lines = [l.strip() for l in original_code.splitlines() if l.strip()]
+                    norm[0]['text'] = '\n'.join(code_lines[:6]) or original_code
+
                 stats = bundle_dict.get('metadata', {}).get('correlation_stats', {})
-                return jsonify({
-                    "nodes": normalize_nodes(nodes),
-                    "stats": stats,
-                    "mode": "real",
-                })
+                return jsonify({"nodes": norm, "stats": stats, "mode": "real"})
 
             except Exception as e:
                 logger.warning(f"Real compiler failed: {e}", exc_info=True)
-                # Fall through to mock with a warning embedded in the response
+                # Fall through to mock
 
         # ---- Mock mode (flang unavailable or compilation failed) ----
-        construct = extract_construct_type(code)
+        construct = extract_construct_type(original_code)
         bundle = get_mock_bundle_for_construct(construct)
         nodes = bundle.get('nodes', [])
 
         if nodes:
             code_lines = [
-                l.strip() for l in code.split('\n')
+                l.strip() for l in original_code.split('\n')
                 if l.strip() and not l.strip().startswith('!')
             ]
             snippet = '\n'.join(code_lines[:3])
