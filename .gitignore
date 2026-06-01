@@ -8,4 +8,5 @@ __pycache__/
 *.pyc
 
 # Environment variables
-.env
+.envweb/frontend/node_modules/
+web/frontend/dist/
