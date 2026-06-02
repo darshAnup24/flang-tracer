@@ -789,7 +789,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "%2 = fir.address_of(@_QQclX2F746D702F6674726163655F7A346C3462646C312F696E7075742E66393000) : !fir.ref<!fir.char<1,31>>"
+          "raw": "%2 = fir.address_of(@_QQclX2F746D702F6674726163655F693233306F7836312F696E7075742E66393000) : !fir.ref<!fir.char<1,31>>"
         },
         {
           "op_name": "fir.convert",
@@ -942,7 +942,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F7A346C3462646C312F696E7075742E66393000 constant : !fir.char<1,31> {"
+          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F693233306F7836312F696E7075742E66393000 constant : !fir.char<1,31> {"
         },
         {
           "op_name": "fir.string_lit",
@@ -953,7 +953,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "%0 = fir.string_lit \"/tmp/ftrace_z4l4bdl1/input.f90\\00\"(31) : !fir.char<1,31>"
+          "raw": "%0 = fir.string_lit \"/tmp/ftrace_i230ox61/input.f90\\00\"(31) : !fir.char<1,31>"
         },
         {
           "op_name": "fir.has_value",
@@ -1159,7 +1159,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %5, ptr %3, ptr @_QQclX2F746D702F6674726163655F7A346C3462646C312F696E7075742E66393000, i32 6)",
+          "line": "call void @_FortranAAssign(ptr %5, ptr %3, ptr @_QQclX2F746D702F6674726163655F693233306F7836312F696E7075742E66393000, i32 6)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -1177,7 +1177,7 @@
           "debug_loc": null
         },
         {
-          "line": "%2 = call ptr @_FortranAioBeginExternalListOutput(i32 6, ptr @_QQclX2F746D702F6674726163655F7A346C3462646C312F696E7075742E66393000, i32 13)",
+          "line": "%2 = call ptr @_FortranAioBeginExternalListOutput(i32 6, ptr @_QQclX2F746D702F6674726163655F693233306F7836312F696E7075742E66393000, i32 13)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null

@@ -805,7 +805,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %5, ptr %4, ptr @_QQclX2F746D702F6674726163655F38656866357132642F696E7075742E66393000, i32 5)",
+          "line": "call void @_FortranAAssign(ptr %5, ptr %4, ptr @_QQclX2F746D702F6674726163655F61353070336170392F696E7075742E66393000, i32 5)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -829,7 +829,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %6, ptr %1, ptr @_QQclX2F746D702F6674726163655F38656866357132642F696E7075742E66393000, i32 8)",
+          "line": "call void @_FortranAAssign(ptr %6, ptr %1, ptr @_QQclX2F746D702F6674726163655F61353070336170392F696E7075742E66393000, i32 8)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null

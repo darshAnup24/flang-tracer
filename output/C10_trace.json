@@ -3600,7 +3600,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F5F335F68643479662F696E7075742E66393000 constant : !fir.char<1,31> {"
+          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F6B7A6775677275642F696E7075742E66393000 constant : !fir.char<1,31> {"
         },
         {
           "op_name": "fir.string_lit",
@@ -3611,7 +3611,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "%0 = fir.string_lit \"/tmp/ftrace__3_hd4yf/input.f90\\00\"(31) : !fir.char<1,31>"
+          "raw": "%0 = fir.string_lit \"/tmp/ftrace_kzgugrud/input.f90\\00\"(31) : !fir.char<1,31>"
         },
         {
           "op_name": "func.func",
@@ -7004,7 +7004,7 @@
           "debug_loc": null
         },
         {
-          "line": "%3 = call i32 @_FortranAAllocatableAllocate(ptr @_QFEs, ptr inttoptr (i64 -1 to ptr), i1 false, ptr null, ptr @_QQclX2F746D702F6674726163655F5F335F68643479662F696E7075742E66393000, i32 13)",
+          "line": "%3 = call i32 @_FortranAAllocatableAllocate(ptr @_QFEs, ptr inttoptr (i64 -1 to ptr), i1 false, ptr null, ptr @_QQclX2F746D702F6674726163655F6B7A6775677275642F696E7075742E66393000, i32 13)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -10702,7 +10702,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F5F335F68643479662F696E7075742E66393000 constant : !fir.char<1,31> {"
+          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F6B7A6775677275642F696E7075742E66393000 constant : !fir.char<1,31> {"
         },
         {
           "op_name": "fir.string_lit",
@@ -10713,7 +10713,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "%0 = fir.string_lit \"/tmp/ftrace__3_hd4yf/input.f90\\00\"(31) : !fir.char<1,31>"
+          "raw": "%0 = fir.string_lit \"/tmp/ftrace_kzgugrud/input.f90\\00\"(31) : !fir.char<1,31>"
         },
         {
           "op_name": "func.func",
@@ -14080,7 +14080,7 @@
           "debug_loc": null
         },
         {
-          "line": "%3 = call i32 @_FortranAAllocatableAllocate(ptr @_QFEs, ptr inttoptr (i64 -1 to ptr), i1 false, ptr null, ptr @_QQclX2F746D702F6674726163655F5F335F68643479662F696E7075742E66393000, i32 13)",
+          "line": "%3 = call i32 @_FortranAAllocatableAllocate(ptr @_QFEs, ptr inttoptr (i64 -1 to ptr), i1 false, ptr null, ptr @_QQclX2F746D702F6674726163655F6B7A6775677275642F696E7075742E66393000, i32 13)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null

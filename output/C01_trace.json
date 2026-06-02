@@ -102,17 +102,6 @@
           "raw": "%7 = fir.alloca !fir.array<5xi32> {bindc_name = \"c\", uniq_name = \"_QFEc\"}"
         },
         {
-          "op_name": "fir.address_of",
-          "operands": [],
-          "results": [
-            "%23"
-          ],
-          "source_range": null,
-          "src_line": null,
-          "debug_loc": null,
-          "raw": "%23 = fir.address_of(@_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000) : !fir.ref<!fir.char<1,31>>"
-        },
-        {
           "op_name": "fir.call",
           "operands": [
             "%c6_i32",
@@ -202,7 +191,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000 constant : !fir.char<1,31> {"
+          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000 constant : !fir.char<1,31> {"
         },
         {
           "op_name": "func.func",
@@ -274,18 +263,6 @@
       ],
       "llvm_instrs": [
         {
-          "line": "call void @_FortranAAssign(ptr %11, ptr %7, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 8)",
-          "src_line": null,
-          "src_col": null,
-          "debug_loc": null
-        },
-        {
-          "line": "call void @_FortranAAssign(ptr %12, ptr %5, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 9)",
-          "src_line": null,
-          "src_col": null,
-          "debug_loc": null
-        },
-        {
           "line": "br label %19",
           "src_line": null,
           "src_col": null,
@@ -328,22 +305,16 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %13, ptr %3, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 12)",
-          "src_line": null,
-          "src_col": null,
-          "debug_loc": null
-        },
-        {
-          "line": "%48 = call ptr @_FortranAioBeginExternalListOutput(i32 6, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 14)",
+          "line": "%48 = call ptr @_FortranAioBeginExternalListOutput(i32 6, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 14)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
         }
       ],
       "metadata": {
-        "num_hlfir_ops": 18,
+        "num_hlfir_ops": 17,
         "num_fir_ops": 3,
-        "num_llvm_instrs": 11,
+        "num_llvm_instrs": 8,
         "fully_correlated": true
       }
     },
@@ -827,7 +798,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "%23 = fir.address_of(@_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000) : !fir.ref<!fir.char<1,31>>"
+          "raw": "%23 = fir.address_of(@_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000) : !fir.ref<!fir.char<1,31>>"
         },
         {
           "op_name": "fir.convert",
@@ -955,7 +926,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000 constant : !fir.char<1,31> {"
+          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000 constant : !fir.char<1,31> {"
         },
         {
           "op_name": "fir.string_lit",
@@ -966,7 +937,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "%0 = fir.string_lit \"/tmp/ftrace_okz8fn98/input.f90\\00\"(31) : !fir.char<1,31>"
+          "raw": "%0 = fir.string_lit \"/tmp/ftrace_0fjmqp2_/input.f90\\00\"(31) : !fir.char<1,31>"
         },
         {
           "op_name": "fir.has_value",
@@ -1250,7 +1221,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %11, ptr %7, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 8)",
+          "line": "call void @_FortranAAssign(ptr %11, ptr %7, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 8)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -1262,7 +1233,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %12, ptr %5, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 9)",
+          "line": "call void @_FortranAAssign(ptr %12, ptr %5, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 9)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -1286,7 +1257,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %13, ptr %3, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 12)",
+          "line": "call void @_FortranAAssign(ptr %13, ptr %3, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 12)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -1298,7 +1269,7 @@
           "debug_loc": null
         },
         {
-          "line": "%48 = call ptr @_FortranAioBeginExternalListOutput(i32 6, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 14)",
+          "line": "%48 = call ptr @_FortranAioBeginExternalListOutput(i32 6, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 14)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -1964,7 +1935,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "%23 = fir.address_of(@_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000) : !fir.ref<!fir.char<1,31>>"
+          "raw": "%23 = fir.address_of(@_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000) : !fir.ref<!fir.char<1,31>>"
         },
         {
           "op_name": "fir.convert",
@@ -2106,7 +2077,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000 constant : !fir.char<1,31> {"
+          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000 constant : !fir.char<1,31> {"
         },
         {
           "op_name": "fir.string_lit",
@@ -2117,7 +2088,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "%0 = fir.string_lit \"/tmp/ftrace_okz8fn98/input.f90\\00\"(31) : !fir.char<1,31>"
+          "raw": "%0 = fir.string_lit \"/tmp/ftrace_0fjmqp2_/input.f90\\00\"(31) : !fir.char<1,31>"
         },
         {
           "op_name": "fir.has_value",
@@ -2492,7 +2463,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %11, ptr %7, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 8)",
+          "line": "call void @_FortranAAssign(ptr %11, ptr %7, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 8)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -2522,7 +2493,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %12, ptr %5, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 9)",
+          "line": "call void @_FortranAAssign(ptr %12, ptr %5, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 9)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -2660,7 +2631,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %13, ptr %3, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 12)",
+          "line": "call void @_FortranAAssign(ptr %13, ptr %3, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 12)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -2672,7 +2643,7 @@
           "debug_loc": null
         },
         {
-          "line": "%48 = call ptr @_FortranAioBeginExternalListOutput(i32 6, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 14)",
+          "line": "%48 = call ptr @_FortranAioBeginExternalListOutput(i32 6, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 14)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -3327,7 +3298,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "%23 = fir.address_of(@_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000) : !fir.ref<!fir.char<1,31>>"
+          "raw": "%23 = fir.address_of(@_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000) : !fir.ref<!fir.char<1,31>>"
         },
         {
           "op_name": "fir.convert",
@@ -3469,7 +3440,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000 constant : !fir.char<1,31> {"
+          "raw": "fir.global linkonce @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000 constant : !fir.char<1,31> {"
         },
         {
           "op_name": "fir.string_lit",
@@ -3480,7 +3451,7 @@
           "source_range": null,
           "src_line": null,
           "debug_loc": null,
-          "raw": "%0 = fir.string_lit \"/tmp/ftrace_okz8fn98/input.f90\\00\"(31) : !fir.char<1,31>"
+          "raw": "%0 = fir.string_lit \"/tmp/ftrace_0fjmqp2_/input.f90\\00\"(31) : !fir.char<1,31>"
         },
         {
           "op_name": "fir.has_value",
@@ -3765,7 +3736,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %11, ptr %7, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 8)",
+          "line": "call void @_FortranAAssign(ptr %11, ptr %7, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 8)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -3795,7 +3766,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %12, ptr %5, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 9)",
+          "line": "call void @_FortranAAssign(ptr %12, ptr %5, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 9)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -3903,7 +3874,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %13, ptr %3, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 12)",
+          "line": "call void @_FortranAAssign(ptr %13, ptr %3, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 12)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -3915,7 +3886,7 @@
           "debug_loc": null
         },
         {
-          "line": "%48 = call ptr @_FortranAioBeginExternalListOutput(i32 6, ptr @_QQclX2F746D702F6674726163655F6F6B7A38666E39382F696E7075742E66393000, i32 14)",
+          "line": "%48 = call ptr @_FortranAioBeginExternalListOutput(i32 6, ptr @_QQclX2F746D702F6674726163655F30666A6D7170325F2F696E7075742E66393000, i32 14)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null

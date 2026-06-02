@@ -76,47 +76,42 @@ For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Quick Start
 
-### 1. Install
+### 1. Build (one-time setup)
 ```bash
-cd flang-tracer
-python3 -m venv venv
+./scripts/build.sh
+```
+
+This creates a Python virtual environment, installs all dependencies (Flask, Click, Rich, pytest), and installs the package in development mode.
+
+### 2. Trace All Examples & Launch Web UI
+```bash
 source venv/bin/activate
-pip install -r requirements.txt
+./scripts/run.sh
 ```
 
-### 2. Run Web UI (Recommended)
+This traces all 10 example Fortran files through the full compiler pipeline, generates HTML/JSON/text reports in `output/`, then starts the web application at **http://127.0.0.1:8081/**.
+
+### 3. Or run pieces individually
+
 ```bash
+# Activate environment first
+source venv/bin/activate
+
+# Start just the web UI (without re-tracing all examples)
 python3 web/app.py
-# Open http://127.0.0.1:8080 in browser
-```
+# Open http://127.0.0.1:8081
 
-### 3. Try Examples
-```bash
-# Array assignment - shows one source line expanding to multiple FIR operations
+# Trace a single file
 ftrace trace examples/C01_array_assign.f90
 
-# WHERE blocks - complex construct with conditional assignments
-ftrace trace examples/C03_where_block.f90
-
-# FORALL loops - parallel construct with implicit looping
-ftrace trace examples/C04_forall.f90
-
-# DO CONCURRENT - parallel iteration with concurrent semantics
-ftrace trace examples/C05_do_concurrent.f90
-
-# Derived types - user-defined type operations
-ftrace trace examples/C06_derived_type.f90
-
-# Polymorphic dispatch - runtime type selection
-ftrace trace examples/C07_polymorph.f90
-
-# Coarray operations - distributed array operations
-ftrace trace examples/C08_coarray.f90
+# Trace with specific output format
+ftrace trace examples/C03_where_block.f90 --format html -o output/my_trace.html
+ftrace trace examples/C05_do_concurrent.f90 --format json -o output/trace.json
 ```
 
 ## Web Interface
 
-The web UI (http://127.0.0.1:8080) provides:
+The web UI (http://127.0.0.1:8081) provides:
 - Upload or paste Fortran code
 - Auto-detect construct type (Array Assignment, WHERE, FORALL, DO CONCURRENT, etc.)
 - Interactive 6-stage pipeline view with semantic formatting

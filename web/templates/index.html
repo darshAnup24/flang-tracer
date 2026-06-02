@@ -58,6 +58,17 @@
       z-index: 10;
     }
 
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+      opacity: 0.6;
+    }
+
     .logo {
       display: flex;
       align-items: center;
@@ -162,6 +173,20 @@
       border-bottom-color: var(--bg-base);
     }
 
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 8px;
+      right: 8px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 1px 1px 0 0;
+    }
+
+    .tab.pipeline-tab.active::after { background: var(--accent2); }
+    #tab-playground.active::after { background: #b48aff; }
+
     .tab-badge {
       display: inline-flex;
       align-items: center;
@@ -188,30 +213,53 @@
       overflow: hidden;
     }
 
+    /* Panel transitions */
+    .iframe-panel,
+    #pipeline-panel,
+    #playground-panel {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .iframe-panel:not(.active),
+    #pipeline-panel:not(.active),
+    #playground-panel:not(.active) {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(4px);
+    }
+    .iframe-panel.active,
+    #pipeline-panel.active,
+    #playground-panel.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
     /* Iframe panel */
     .iframe-panel {
       position: absolute;
       inset: 0;
-      display: none;
+      display: block;
+      visibility: hidden;
     }
-    .iframe-panel.active { display: block; }
+    .iframe-panel.active { visibility: visible; }
 
     .iframe-panel iframe {
       width: 100%;
       height: 100%;
       border: none;
-      background: #fff;
+      background: var(--bg-base);
     }
 
     /* Pipeline panel */
     #pipeline-panel {
       position: absolute;
       inset: 0;
-      display: none;
+      display: flex;
+      visibility: hidden;
       flex-direction: column;
       overflow: hidden;
     }
-    #pipeline-panel.active { display: flex; }
+    #pipeline-panel.active { visibility: visible; }
 
     .pipeline-stats {
       display: flex;
@@ -339,11 +387,12 @@
     #playground-panel {
       position: absolute;
       inset: 0;
-      display: none;
+      display: flex;
+      visibility: hidden;
       flex-direction: column;
       overflow: hidden;
     }
-    #playground-panel.active { display: flex; }
+    #playground-panel.active { visibility: visible; }
 
     .pg-toolbar {
       display: flex;

@@ -1,11 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flang Multi-Stage Semantic Tracer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --bg-base:    #0d0f14;
+            --bg-surface: #13161e;
+            --bg-raised:  #1a1e28;
+            --bg-hover:   #212536;
+            --border:     #2a2f3d;
+            --border-lit: #3d4560;
+            --accent:     #5b8fff;
+            --accent2:    #40d9b5;
+            --accent3:    #f06f3f;
+            --text-1:     #e8ecf4;
+            --text-2:     #9ba5be;
+            --text-3:     #5a6278;
+            --tag-blue:   #1e3a6e;
+            --tag-green:  #0f3329;
+            --radius:     8px;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -13,126 +33,134 @@
         }
 
         body {
-            background: #1e1e1e;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-1);
+            font-family: 'Inter', sans-serif;
             font-size: 13px;
             line-height: 1.5;
             padding: 20px;
         }
 
         h1 {
-            color: #4fc3f7;
+            color: var(--accent);
             margin-bottom: 20px;
-            font-size: 24px;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
         }
 
         .header {
-            margin-bottom: 30px;
-            border-bottom: 2px solid #444;
-            padding-bottom: 15px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
         }
 
         .stats {
             display: flex;
-            gap: 30px;
-            margin: 15px 0;
+            gap: 28px;
+            margin: 16px 0 4px;
             flex-wrap: wrap;
         }
 
         .stat-item {
             display: flex;
             flex-direction: column;
+            gap: 2px;
         }
 
         .stat-label {
-            color: #888;
-            font-size: 11px;
+            color: var(--text-3);
+            font-size: 10px;
             text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
 
         .stat-value {
-            color: #4fc3f7;
-            font-size: 18px;
-            font-weight: bold;
+            color: var(--accent);
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1;
         }
 
         .trace-container {
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            gap: 20px;
         }
 
         .trace-row {
-            background: #252526;
-            border: 1px solid #3e3e42;
-            border-radius: 6px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.25);
         }
 
         .construct-header {
-            background: #2d2d30;
-            padding: 15px;
+            background: var(--bg-raised);
+            padding: 12px 16px;
             display: flex;
-            gap: 15px;
+            gap: 12px;
             align-items: center;
-            border-bottom: 1px solid #3e3e42;
+            border-bottom: 1px solid var(--border);
             flex-wrap: wrap;
         }
 
         .construct-kind {
-            background: #0e639c;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-weight: bold;
-            font-size: 12px;
+            background: var(--tag-blue);
+            color: var(--accent);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .construct-id {
-            color: #ce9178;
-            font-family: monospace;
-            font-size: 11px;
+            color: var(--text-3);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
         }
 
         .correlation-status {
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 11px;
-            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
         }
 
         .correlation-status.correlated {
-            background: #2d7d2d;
-            color: #6ba583;
+            background: var(--tag-green);
+            color: var(--accent2);
         }
 
         .correlation-status.partial {
-            background: #7d5d2d;
-            color: #b5a683;
+            background: #3d2a10;
+            color: #e8b84b;
         }
 
         .op-counts {
-            color: #888;
-            font-size: 11px;
+            color: var(--text-3);
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
             margin-left: auto;
         }
 
         .stages-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
             gap: 0;
         }
 
         .stage {
-            border-right: 1px solid #3e3e42;
-            border-bottom: 1px solid #3e3e42;
-            padding: 15px;
-            background: #1e1e1e;
-            min-height: 200px;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 14px;
+            background: var(--bg-base);
+            min-height: 160px;
             overflow-y: auto;
-            max-height: 400px;
+            max-height: 360px;
         }
 
         .stage:last-child {
@@ -140,19 +168,21 @@
         }
 
         .stage-label {
-            color: #9cdcfe;
-            font-size: 11px;
+            color: var(--text-2);
+            font-size: 10px;
             text-transform: uppercase;
-            font-weight: bold;
+            letter-spacing: 0.08em;
+            font-weight: 700;
             margin-bottom: 10px;
             padding-bottom: 8px;
-            border-bottom: 1px solid #3e3e42;
+            border-bottom: 1px solid var(--border);
         }
 
         .stage-content {
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
-            color: #d4d4d4;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-2);
+            line-height: 1.6;
         }
 
         .source {
@@ -160,154 +190,167 @@
         }
 
         .source .stage-content {
-            background: #1e1e1e;
-            padding: 10px;
-            border-radius: 3px;
-            border-left: 3px solid #0e639c;
+            background: var(--bg-surface);
+            padding: 10px 12px;
+            border-radius: 5px;
+            border-left: 3px solid var(--accent);
+            color: var(--text-1);
+            font-size: 12px;
         }
 
         .ast-node {
             display: flex;
             gap: 10px;
-            padding: 6px;
-            background: #2d2d30;
-            margin-bottom: 4px;
-            border-radius: 3px;
-            border-left: 2px solid #4fc3f7;
+            padding: 5px 8px;
+            background: var(--bg-raised);
+            margin-bottom: 3px;
+            border-radius: 4px;
+            border-left: 2px solid var(--accent);
         }
 
         .node-kind {
-            color: #4fc3f7;
-            font-weight: bold;
+            color: var(--accent);
+            font-weight: 600;
         }
 
         .node-range {
-            color: #888;
-            font-size: 11px;
+            color: var(--text-3);
+            font-size: 10px;
         }
 
         .symbol-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 10.5px;
         }
 
         .symbol-table thead {
-            background: #2d2d30;
-            border-bottom: 2px solid #0e639c;
+            background: var(--bg-raised);
+            border-bottom: 1px solid var(--accent);
         }
 
         .symbol-table th {
-            padding: 8px;
+            padding: 6px 8px;
             text-align: left;
-            color: #9cdcfe;
-            font-weight: bold;
+            color: var(--text-1);
+            font-weight: 600;
         }
 
         .symbol-table td {
-            padding: 6px 8px;
-            border-bottom: 1px solid #3e3e42;
+            padding: 5px 8px;
+            border-bottom: 1px solid var(--border);
         }
 
         .sym-name {
-            color: #ce9178;
-            font-weight: bold;
+            color: #d4a0ff;
+            font-weight: 600;
         }
 
         .sym-kind {
-            color: #4fc3f7;
+            color: var(--accent);
             font-size: 10px;
         }
 
         .sym-type {
-            color: #b5cea8;
+            color: var(--accent2);
         }
 
         .sym-attrs {
-            color: #888;
+            color: var(--text-3);
             font-size: 10px;
         }
 
         .ir-op {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
-            padding: 6px;
-            background: #2d2d30;
-            margin-bottom: 4px;
-            border-radius: 2px;
-            border-left: 2px solid #646695;
+            gap: 4px;
+            padding: 5px 8px;
+            background: var(--bg-raised);
+            margin-bottom: 3px;
+            border-radius: 4px;
+            border-left: 2px solid var(--border-lit);
+            font-size: 10.5px;
         }
 
         .hlfir-op {
-            border-left-color: #b8860b;
+            border-left-color: #ffcb6b;
         }
 
         .fir-op {
-            border-left-color: #d16969;
+            border-left-color: #f78c6c;
         }
 
         .llvm-instr {
             display: flex;
-            gap: 10px;
-            padding: 4px;
-            margin-bottom: 4px;
-            border-left: 2px solid #999;
+            gap: 8px;
+            padding: 3px 8px;
+            margin-bottom: 3px;
+            border-left: 2px solid var(--border-lit);
+            font-size: 10.5px;
         }
 
         .op-result {
-            color: #ce9178;
+            color: #d4a0ff;
         }
 
         .op-name {
-            color: #4fc3f7;
-            font-weight: bold;
+            color: var(--accent);
+            font-weight: 600;
         }
 
         .hlfir-name {
-            color: #b8860b;
+            color: #ffcb6b;
         }
 
         .fir-name {
-            color: #d16969;
+            color: #f78c6c;
         }
 
         .op-args {
-            color: #d4d4d4;
+            color: var(--text-2);
         }
 
         .op-loc, .debug-loc {
-            color: #888;
-            font-size: 10px;
+            color: var(--text-3);
+            font-size: 9.5px;
         }
 
         .llvm-op {
-            color: #ce9178;
-            font-weight: bold;
+            color: #d4a0ff;
+            font-weight: 600;
         }
 
         .llvm-line {
-            color: #d4d4d4;
-            padding: 2px 6px;
-            background: #2d2d30;
-            border-radius: 2px;
+            color: var(--text-2);
+            padding: 1px 5px;
+            background: var(--bg-raised);
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
         }
 
         .fir-construct {
-            margin-bottom: 8px;
-            border: 1px solid #3e3e42;
-            border-radius: 3px;
-            padding: 6px;
-            background: #2d2d30;
+            margin-bottom: 6px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 6px 8px;
+            background: var(--bg-raised);
         }
 
         .op-count {
-            color: #9cdcfe;
-            font-size: 10px;
-            margin-bottom: 6px;
+            color: var(--text-2);
+            font-size: 9.5px;
+            margin-bottom: 5px;
             padding-bottom: 4px;
-            border-bottom: 1px solid #3e3e42;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-lit); border-radius: 2px; }
 
         @media (max-width: 1400px) {
             .stages-grid {
@@ -406,7 +449,7 @@
 
                     <div class="stage llvm">
                         <div class="stage-label">LLVM IR (Machine IR)</div>
-                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F66346178717834332F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
+                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F76337062395F6A6B2F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
                     </div>
                 </div>
             </div>
@@ -468,7 +511,7 @@
 
                     <div class="stage llvm">
                         <div class="stage-label">LLVM IR (Machine IR)</div>
-                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F66346178717834332F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%12 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%21 = sub i32 0, %20</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%22 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%29 = sub i64 %9, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%35 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%43 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%51 = sub i64 %32, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
+                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F76337062395F6A6B2F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%12 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%21 = sub i32 0, %20</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%22 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%29 = sub i64 %9, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%35 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%43 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%51 = sub i64 %32, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
                     </div>
                 </div>
             </div>
@@ -530,7 +573,7 @@
 
                     <div class="stage llvm">
                         <div class="stage-label">LLVM IR (Machine IR)</div>
-                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F66346178717834332F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%12 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%21 = sub i32 0, %20</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%22 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%29 = sub i64 %9, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%35 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%43 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%51 = sub i64 %32, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
+                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F76337062395F6A6B2F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%12 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%21 = sub i32 0, %20</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%22 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%29 = sub i64 %9, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%35 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%43 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%51 = sub i64 %32, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
                     </div>
                 </div>
             </div>
@@ -587,7 +630,7 @@
 
                     <div class="stage llvm">
                         <div class="stage-label">LLVM IR (Machine IR)</div>
-                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F66346178717834332F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%12 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%21 = sub i32 0, %20</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%22 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%29 = sub i64 %9, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%35 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%43 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%51 = sub i64 %32, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
+                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F76337062395F6A6B2F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%12 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%21 = sub i32 0, %20</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%22 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%29 = sub i64 %9, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%35 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%43 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%51 = sub i64 %32, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
                     </div>
                 </div>
             </div>
@@ -644,7 +687,7 @@
 
                     <div class="stage llvm">
                         <div class="stage-label">LLVM IR (Machine IR)</div>
-                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F66346178717834332F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%12 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%21 = sub i32 0, %20</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%22 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%29 = sub i64 %9, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%35 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%43 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%51 = sub i64 %32, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
+                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F76337062395F6A6B2F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%12 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%21 = sub i32 0, %20</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%22 = sub nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%29 = sub i64 %9, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%35 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%43 = sub nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%51 = sub i64 %32, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
                     </div>
                 </div>
             </div>
@@ -691,7 +734,7 @@
 
                     <div class="stage llvm">
                         <div class="stage-label">LLVM IR (Machine IR)</div>
-                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F66346178717834332F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
+                        <div class="stage-content llvm"><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%1 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%2 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%3 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%4 = alloca [5 x i32], i64 1, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%5 = alloca { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] }, i64 1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr @_QQroX5xi4X0, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %2, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%6 = insertvalue { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } { ptr undef, i64 4, i32 20240719, i8 1, i8 9, i8 0, i8 0, [1 x [3 x i64]] [[3 x i64] [i64 1, i64 5, i64 4]] }, ptr %4, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store { ptr, i64, i32, i8, i8, i8, i8, [1 x [3 x i64]] } %6, ptr %1, align 8</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @llvm.memcpy.p0.p0.i32(ptr %5, ptr %1, i32 48, i1 false)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F76337062395F6A6B2F696E7075742E66393000, i32 5)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %10, label %11, label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%15 = add nsw i64 %14, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%17 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %18, label %19, label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%20 = load i32, ptr %16, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%25 = add nsw i64 %24, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %21, ptr %26, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %27</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%28 = add nsw i64 %8, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %7</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %33, label %34, label %52</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%38 = add nsw i64 %37, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%40 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br i1 %41, label %49, label %42</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%46 = add nsw i64 %45, 0</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%48 = load i32, ptr %39, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">store i32 %48, ptr %47, align 4</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %49</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">%50 = add nsw i64 %31, 1</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">br label %30</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramStart(i32 %0, ptr %1, ptr %2, ptr null)</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_QQmain()</code></div><div class="llvm-instr"><span class="llvm-op">?</span> <code class="llvm-line">call void @_FortranAProgramEndStatement()</code></div></div>
                     </div>
                 </div>
             </div>

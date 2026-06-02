@@ -175,12 +175,6 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F3468376630746B6B2F696E7075742E66393000, i32 7)",
-          "src_line": null,
-          "src_col": null,
-          "debug_loc": null
-        },
-        {
           "line": "br label %8",
           "src_line": null,
           "src_col": null,
@@ -226,7 +220,7 @@
       "metadata": {
         "num_hlfir_ops": 11,
         "num_fir_ops": 1,
-        "num_llvm_instrs": 9,
+        "num_llvm_instrs": 8,
         "fully_correlated": true
       }
     },
@@ -936,7 +930,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F3468376630746B6B2F696E7075742E66393000, i32 7)",
+          "line": "call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F76637576793671752F696E7075742E66393000, i32 7)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null
@@ -1884,7 +1878,7 @@
           "debug_loc": null
         },
         {
-          "line": "call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F3468376630746B6B2F696E7075742E66393000, i32 7)",
+          "line": "call void @_FortranAAssign(ptr %5, ptr %2, ptr @_QQclX2F746D702F6674726163655F76637576793671752F696E7075742E66393000, i32 7)",
           "src_line": null,
           "src_col": null,
           "debug_loc": null

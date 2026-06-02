@@ -1,31 +1,17 @@
-"""
-Stage-aware semantic HTML renderer for Flang tracer results.
-
-This module provides semantic interpretation of each stage:
-- Parse Tree: AST node visualization with proper syntax tree structure
-- Semantics: Symbol table with type and attribute information
-- HLFIR: High-level Fortran IR with semantic structure preserved
-- FIR: Lowered SSA IR with one-to-many operation visualization
-- LLVM IR: Machine code with relevance filtering
-"""
-
 import html as html_module
 from typing import Dict, List, Optional
 
 
 def escape_html(text):
-    """Safely escape HTML special characters."""
     if not text:
         return ""
     return html_module.escape(str(text))
 
 
 class StageFormatter:
-    """Formats output for each compilation stage."""
 
     @staticmethod
     def format_parse_tree(constructs: List) -> str:
-        """Format parse tree constructs as semantic AST nodes."""
         if not constructs:
             return '<div class="stage-content"><p>[No parse tree constructs found]</p></div>'
 
@@ -47,7 +33,6 @@ class StageFormatter:
 
     @staticmethod
     def format_semantics(symbols: List) -> str:
-        """Format semantic symbols as a type-annotated table."""
         if not symbols:
             return '<div class="stage-content"><p>[No symbols found]</p></div>'
 
@@ -92,7 +77,6 @@ class StageFormatter:
 
     @staticmethod
     def format_hlfir(ops: List) -> str:
-        """Format HLFIR operations with semantic structure."""
         if not ops:
             return '<div class="stage-content"><p>[No HLFIR operations]</p></div>'
 
@@ -120,13 +104,11 @@ class StageFormatter:
 
     @staticmethod
     def format_fir(ops: List) -> str:
-        """Format FIR operations with one-to-many visualization."""
         if not ops:
             return '<div class="stage-content"><p>[No FIR operations]</p></div>'
 
         html = '<div class="stage-content fir">'
 
-        # Group by construct for one-to-many visualization
         construct_groups: Dict[str, List] = {}
         for op in ops:
             if isinstance(op, dict):
@@ -135,7 +117,6 @@ class StageFormatter:
                     construct_groups[construct_id] = []
                 construct_groups[construct_id].append(op)
 
-        # Render grouped operations
         for construct_id, ops_in_group in construct_groups.items():
             html += f'<div class="fir-construct" data-construct="{escape_html(construct_id)}">'
 
@@ -165,7 +146,6 @@ class StageFormatter:
 
     @staticmethod
     def format_llvm(instrs: List) -> str:
-        """Format LLVM instructions with debug metadata."""
         if not instrs:
             return '<div class="stage-content"><p>[No LLVM instructions]</p></div>'
 
@@ -191,7 +171,6 @@ class StageFormatter:
 
 
 def generate_html(trace_bundle):
-    """Generate semantic HTML output from trace bundle."""
     if not trace_bundle or not isinstance(trace_bundle, dict):
         return generate_error_page("Invalid trace bundle format")
 
@@ -209,14 +188,12 @@ def generate_html(trace_bundle):
             if not isinstance(node, dict):
                 continue
 
-            # Extract construct and stage data
             construct = node.get('construct', {})
             construct_kind = construct.get('kind', 'UNKNOWN')
             construct_id = construct.get('id', 'N/A')
 
             source_text = escape_html(node.get('source', '[No source]'))
 
-            # Stage-specific formatting
             parse_tree_html = StageFormatter.format_parse_tree(node.get('parse_tree', []))
             semantics_html = StageFormatter.format_semantics(node.get('semantics', []))
             hlfir_html = StageFormatter.format_hlfir(node.get('hlfir_ops', []))
@@ -224,14 +201,15 @@ def generate_html(trace_bundle):
             llvm_html = StageFormatter.format_llvm(node.get('llvm_instrs', []))
 
             construct_meta = node.get('metadata', {})
-            correlation_status = "✓ Fully correlated" if construct_meta.get('fully_correlated') else "⚠ Partial"
+            is_correlated = construct_meta.get('fully_correlated', False)
+            correlation_status = "✓ Fully correlated" if is_correlated else "⚠ Partial"
 
             rows_html += f'''
             <div class="trace-row" id="construct-{idx}">
                 <div class="construct-header">
                     <span class="construct-kind">{escape_html(construct_kind)}</span>
                     <span class="construct-id">{escape_html(construct_id)}</span>
-                    <span class="correlation-status {construct_meta.get('fully_correlated') and "correlated" or "partial"}">
+                    <span class="correlation-status {'correlated' if is_correlated else 'partial'}">
                         {correlation_status}
                     </span>
                     <span class="op-counts">
@@ -275,15 +253,34 @@ def generate_html(trace_bundle):
             </div>
             '''
 
-        # Build overall page
         return f'''<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flang Multi-Stage Semantic Tracer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
+        :root {{
+            --bg-base:    #0d0f14;
+            --bg-surface: #13161e;
+            --bg-raised:  #1a1e28;
+            --bg-hover:   #212536;
+            --border:     #2a2f3d;
+            --border-lit: #3d4560;
+            --accent:     #5b8fff;
+            --accent2:    #40d9b5;
+            --accent3:    #f06f3f;
+            --text-1:     #e8ecf4;
+            --text-2:     #9ba5be;
+            --text-3:     #5a6278;
+            --tag-blue:   #1e3a6e;
+            --tag-green:  #0f3329;
+            --radius:     8px;
+        }}
+
         * {{
             box-sizing: border-box;
             margin: 0;
@@ -291,126 +288,134 @@ def generate_html(trace_bundle):
         }}
 
         body {{
-            background: #1e1e1e;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-1);
+            font-family: 'Inter', sans-serif;
             font-size: 13px;
             line-height: 1.5;
             padding: 20px;
         }}
 
         h1 {{
-            color: #4fc3f7;
+            color: var(--accent);
             margin-bottom: 20px;
-            font-size: 24px;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
         }}
 
         .header {{
-            margin-bottom: 30px;
-            border-bottom: 2px solid #444;
-            padding-bottom: 15px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
         }}
 
         .stats {{
             display: flex;
-            gap: 30px;
-            margin: 15px 0;
+            gap: 28px;
+            margin: 16px 0 4px;
             flex-wrap: wrap;
         }}
 
         .stat-item {{
             display: flex;
             flex-direction: column;
+            gap: 2px;
         }}
 
         .stat-label {{
-            color: #888;
-            font-size: 11px;
+            color: var(--text-3);
+            font-size: 10px;
             text-transform: uppercase;
+            letter-spacing: 0.08em;
         }}
 
         .stat-value {{
-            color: #4fc3f7;
-            font-size: 18px;
-            font-weight: bold;
+            color: var(--accent);
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1;
         }}
 
         .trace-container {{
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            gap: 20px;
         }}
 
         .trace-row {{
-            background: #252526;
-            border: 1px solid #3e3e42;
-            border-radius: 6px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.25);
         }}
 
         .construct-header {{
-            background: #2d2d30;
-            padding: 15px;
+            background: var(--bg-raised);
+            padding: 12px 16px;
             display: flex;
-            gap: 15px;
+            gap: 12px;
             align-items: center;
-            border-bottom: 1px solid #3e3e42;
+            border-bottom: 1px solid var(--border);
             flex-wrap: wrap;
         }}
 
         .construct-kind {{
-            background: #0e639c;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-weight: bold;
-            font-size: 12px;
+            background: var(--tag-blue);
+            color: var(--accent);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
         }}
 
         .construct-id {{
-            color: #ce9178;
-            font-family: monospace;
-            font-size: 11px;
+            color: var(--text-3);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
         }}
 
         .correlation-status {{
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 11px;
-            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
         }}
 
         .correlation-status.correlated {{
-            background: #2d7d2d;
-            color: #6ba583;
+            background: var(--tag-green);
+            color: var(--accent2);
         }}
 
         .correlation-status.partial {{
-            background: #7d5d2d;
-            color: #b5a683;
+            background: #3d2a10;
+            color: #e8b84b;
         }}
 
         .op-counts {{
-            color: #888;
-            font-size: 11px;
+            color: var(--text-3);
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
             margin-left: auto;
         }}
 
         .stages-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
             gap: 0;
         }}
 
         .stage {{
-            border-right: 1px solid #3e3e42;
-            border-bottom: 1px solid #3e3e42;
-            padding: 15px;
-            background: #1e1e1e;
-            min-height: 200px;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 14px;
+            background: var(--bg-base);
+            min-height: 160px;
             overflow-y: auto;
-            max-height: 400px;
+            max-height: 360px;
         }}
 
         .stage:last-child {{
@@ -418,19 +423,21 @@ def generate_html(trace_bundle):
         }}
 
         .stage-label {{
-            color: #9cdcfe;
-            font-size: 11px;
+            color: var(--text-2);
+            font-size: 10px;
             text-transform: uppercase;
-            font-weight: bold;
+            letter-spacing: 0.08em;
+            font-weight: 700;
             margin-bottom: 10px;
             padding-bottom: 8px;
-            border-bottom: 1px solid #3e3e42;
+            border-bottom: 1px solid var(--border);
         }}
 
         .stage-content {{
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
-            color: #d4d4d4;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-2);
+            line-height: 1.6;
         }}
 
         .source {{
@@ -438,154 +445,167 @@ def generate_html(trace_bundle):
         }}
 
         .source .stage-content {{
-            background: #1e1e1e;
-            padding: 10px;
-            border-radius: 3px;
-            border-left: 3px solid #0e639c;
+            background: var(--bg-surface);
+            padding: 10px 12px;
+            border-radius: 5px;
+            border-left: 3px solid var(--accent);
+            color: var(--text-1);
+            font-size: 12px;
         }}
 
         .ast-node {{
             display: flex;
             gap: 10px;
-            padding: 6px;
-            background: #2d2d30;
-            margin-bottom: 4px;
-            border-radius: 3px;
-            border-left: 2px solid #4fc3f7;
+            padding: 5px 8px;
+            background: var(--bg-raised);
+            margin-bottom: 3px;
+            border-radius: 4px;
+            border-left: 2px solid var(--accent);
         }}
 
         .node-kind {{
-            color: #4fc3f7;
-            font-weight: bold;
+            color: var(--accent);
+            font-weight: 600;
         }}
 
         .node-range {{
-            color: #888;
-            font-size: 11px;
+            color: var(--text-3);
+            font-size: 10px;
         }}
 
         .symbol-table {{
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 10.5px;
         }}
 
         .symbol-table thead {{
-            background: #2d2d30;
-            border-bottom: 2px solid #0e639c;
+            background: var(--bg-raised);
+            border-bottom: 1px solid var(--accent);
         }}
 
         .symbol-table th {{
-            padding: 8px;
+            padding: 6px 8px;
             text-align: left;
-            color: #9cdcfe;
-            font-weight: bold;
+            color: var(--text-1);
+            font-weight: 600;
         }}
 
         .symbol-table td {{
-            padding: 6px 8px;
-            border-bottom: 1px solid #3e3e42;
+            padding: 5px 8px;
+            border-bottom: 1px solid var(--border);
         }}
 
         .sym-name {{
-            color: #ce9178;
-            font-weight: bold;
+            color: #d4a0ff;
+            font-weight: 600;
         }}
 
         .sym-kind {{
-            color: #4fc3f7;
+            color: var(--accent);
             font-size: 10px;
         }}
 
         .sym-type {{
-            color: #b5cea8;
+            color: var(--accent2);
         }}
 
         .sym-attrs {{
-            color: #888;
+            color: var(--text-3);
             font-size: 10px;
         }}
 
         .ir-op {{
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
-            padding: 6px;
-            background: #2d2d30;
-            margin-bottom: 4px;
-            border-radius: 2px;
-            border-left: 2px solid #646695;
+            gap: 4px;
+            padding: 5px 8px;
+            background: var(--bg-raised);
+            margin-bottom: 3px;
+            border-radius: 4px;
+            border-left: 2px solid var(--border-lit);
+            font-size: 10.5px;
         }}
 
         .hlfir-op {{
-            border-left-color: #b8860b;
+            border-left-color: #ffcb6b;
         }}
 
         .fir-op {{
-            border-left-color: #d16969;
+            border-left-color: #f78c6c;
         }}
 
         .llvm-instr {{
             display: flex;
-            gap: 10px;
-            padding: 4px;
-            margin-bottom: 4px;
-            border-left: 2px solid #999;
+            gap: 8px;
+            padding: 3px 8px;
+            margin-bottom: 3px;
+            border-left: 2px solid var(--border-lit);
+            font-size: 10.5px;
         }}
 
         .op-result {{
-            color: #ce9178;
+            color: #d4a0ff;
         }}
 
         .op-name {{
-            color: #4fc3f7;
-            font-weight: bold;
+            color: var(--accent);
+            font-weight: 600;
         }}
 
         .hlfir-name {{
-            color: #b8860b;
+            color: #ffcb6b;
         }}
 
         .fir-name {{
-            color: #d16969;
+            color: #f78c6c;
         }}
 
         .op-args {{
-            color: #d4d4d4;
+            color: var(--text-2);
         }}
 
         .op-loc, .debug-loc {{
-            color: #888;
-            font-size: 10px;
+            color: var(--text-3);
+            font-size: 9.5px;
         }}
 
         .llvm-op {{
-            color: #ce9178;
-            font-weight: bold;
+            color: #d4a0ff;
+            font-weight: 600;
         }}
 
         .llvm-line {{
-            color: #d4d4d4;
-            padding: 2px 6px;
-            background: #2d2d30;
-            border-radius: 2px;
+            color: var(--text-2);
+            padding: 1px 5px;
+            background: var(--bg-raised);
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
         }}
 
         .fir-construct {{
-            margin-bottom: 8px;
-            border: 1px solid #3e3e42;
-            border-radius: 3px;
-            padding: 6px;
-            background: #2d2d30;
+            margin-bottom: 6px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 6px 8px;
+            background: var(--bg-raised);
         }}
 
         .op-count {{
-            color: #9cdcfe;
-            font-size: 10px;
-            margin-bottom: 6px;
+            color: var(--text-2);
+            font-size: 9.5px;
+            margin-bottom: 5px;
             padding-bottom: 4px;
-            border-bottom: 1px solid #3e3e42;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }}
+
+        ::-webkit-scrollbar {{ width: 4px; height: 4px; }}
+        ::-webkit-scrollbar-track {{ background: transparent; }}
+        ::-webkit-scrollbar-thumb {{ background: var(--border-lit); border-radius: 2px; }}
 
         @media (max-width: 1400px) {{
             .stages-grid {{
@@ -649,34 +669,48 @@ def generate_html(trace_bundle):
 
 
 def generate_error_page(msg: str) -> str:
-    """Generate error page."""
     return f"""<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Error</title>
+    <title>Error — FTrace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
+        :root {{
+            --bg-base:    #0d0f14;
+            --bg-surface: #13161e;
+            --bg-raised:  #1a1e28;
+            --border:     #2a2f3d;
+            --accent3:    #f06f3f;
+            --text-1:     #e8ecf4;
+            --text-2:     #9ba5be;
+        }}
         body {{
-            background: #1e1e1e;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-1);
+            font-family: 'Inter', sans-serif;
             padding: 40px;
         }}
         .error-container {{
             max-width: 600px;
             margin: 0 auto;
-            background: #252526;
+            background: var(--bg-surface);
             padding: 30px;
-            border-radius: 6px;
-            border-left: 4px solid #d16969;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent3);
+            border: 1px solid var(--border);
         }}
         h2 {{
-            color: #d16969;
+            color: var(--accent3);
             margin-bottom: 15px;
+            font-weight: 600;
         }}
         p {{
-            color: #d4d4d4;
+            color: var(--text-2);
             word-break: break-word;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
         }}
     </style>
 </head>
@@ -686,5 +720,4 @@ def generate_error_page(msg: str) -> str:
         <p>{escape_html(msg)}</p>
     </div>
 </body>
-</html>
-"""
+</html>"""
